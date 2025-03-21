@@ -1,4 +1,4 @@
-package com.replan.repos;
+package com.replan.persistance;
 
 import com.replan.domain.objects.Team;
 

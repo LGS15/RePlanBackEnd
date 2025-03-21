@@ -1,7 +1,7 @@
-package com.replan.repos;
+package com.replan.persistance.team;
 
-import com.replan.repos.TeamRepository;
 import com.replan.domain.objects.Team;
+import com.replan.persistance.TeamRepository;
 import org.springframework.stereotype.Repository;
 import java.util.*;
 
