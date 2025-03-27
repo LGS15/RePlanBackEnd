@@ -8,9 +8,8 @@ stages:
 build:
   stage: build
   script:
-      - dir
-      - Get-ChildItem -Force
-      - .\gradlew.bat assemble
+    - Set-Location APIcred
+    - .\gradlew.bat assemble
 
 
 test:
