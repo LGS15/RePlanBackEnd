@@ -15,5 +15,6 @@ build:
 test:
   stage: test
   script:
-    - .\gradlew test
+    - Set-Location APIcred
+    - .\gradlew.bat test
 
