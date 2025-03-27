@@ -15,4 +15,3 @@ test:
   script:
     - ./gradlew test
 
-image: openjdk:23
