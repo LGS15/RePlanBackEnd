@@ -8,7 +8,7 @@ stages:
 build:
   stage: build
   script:
-    - if ($IsWindows) { .\gradlew.bat assemble } else { ./gradlew assemble }
+    -  .\gradlew.bat assemble
 
 test:
   stage: test
