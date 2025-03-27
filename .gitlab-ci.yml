@@ -15,5 +15,5 @@ build:
 test:
   stage: test
   script:
-    - ./gradlew test
+    - .\gradlew test
 
