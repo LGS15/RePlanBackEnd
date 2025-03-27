@@ -8,7 +8,10 @@ stages:
 build:
   stage: build
   script:
-    -  .\gradlew assemble
+      - dir
+      - Get-ChildItem -Force
+      - .\gradlew.bat assemble
+
 
 test:
   stage: test
