@@ -56,13 +56,13 @@ public class AddTeamMemberImplTest {
 
     @Test
     public void testAddTeamMemberTeamNotFound() {
-        // Given a request with a non-existent teamId
+        // Give a request with a non-existent teamId
         AddTeamMemberRequest addRequest = new AddTeamMemberRequest();
         addRequest.setTeamId("nonexistentTeamId");
         addRequest.setUserId("user456");
         addRequest.setRole(Role.PLAYER);
 
-        // Expect an exception because the team is not found/doesn't exist
+        // Exception because the team is not found/doesn't exist
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             addTeamMemberUseCase.addTeamMember(addRequest);
         });
