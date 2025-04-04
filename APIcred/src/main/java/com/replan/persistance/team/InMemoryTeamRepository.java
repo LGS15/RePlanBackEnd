@@ -4,6 +4,7 @@ import com.replan.domain.objects.Team;
 import com.replan.persistance.TeamRepository;
 import org.springframework.stereotype.Repository;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryTeamRepository implements TeamRepository {
@@ -27,5 +28,12 @@ public class InMemoryTeamRepository implements TeamRepository {
     @Override
     public List<Team> findAll() {
         return new ArrayList<>(storage.values());
+    }
+
+    @Override
+    public List<Team> findByOwnerId(String ownerId) {
+        return storage.values().stream()
+                .filter(t->t.getOwnerId().equals(ownerId))
+                .collect(Collectors.toList());
     }
 }
