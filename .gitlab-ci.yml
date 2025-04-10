@@ -10,8 +10,10 @@ build:
   stage: build
   script:
     - Set-Location APIcred
-    - .\gradlew.bat assemble
-
+    - .\gradlew.bat bootJar
+  artifacts:
+    paths:
+      - APIcred/build/libs/
 
 test:
   stage: test
