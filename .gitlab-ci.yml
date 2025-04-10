@@ -22,5 +22,5 @@ test:
 docker:
   stage: docker
   script:
-    -docker build -t replan .
-    -docker run -d -p 8080:8080 --name replanBE replan
+    - docker build -t replan .
+    - docker run -d -p 8080:8080 --name replanBE replan
