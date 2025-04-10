@@ -4,6 +4,7 @@ variables:
 stages:
   - build
   - test
+  - docker
 
 build:
   stage: build
@@ -18,3 +19,8 @@ test:
     - Set-Location APIcred
     - .\gradlew.bat test
 
+docker:
+  stage: docker
+  script:
+    -docker build -t replan .
+    -docker run -d -p 8080:8080 --name replanBE replan
