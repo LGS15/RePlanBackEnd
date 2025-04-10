@@ -1,6 +1,7 @@
 package com.replan;
 
 import com.replan.business.usecases.team.CreateTeamUseCase;
+import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -18,4 +19,7 @@ public class TestConfig {
     public AddTeamMemberUseCase addTeamMemberUseCase() {
         return Mockito.mock(AddTeamMemberUseCase.class);
     }
+
+    @Bean
+    public GetTeamsByOwnerUseCase getTeamsByOwnerUseCase() {return Mockito.mock(GetTeamsByOwnerUseCase.class);}
 }

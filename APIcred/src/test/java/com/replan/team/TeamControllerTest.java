@@ -3,6 +3,7 @@ package com.replan.team;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.replan.TestConfig;
 import com.replan.business.usecases.team.CreateTeamUseCase;
+import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.controller.TeamController;
 import com.replan.domain.objects.Role;
@@ -33,6 +34,9 @@ public class TeamControllerTest {
 
     @Autowired
     private AddTeamMemberUseCase addTeamMemberUseCase;
+
+    @Autowired
+    private GetTeamsByOwnerUseCase getTeamsByOwnerUseCase;
 
     @Autowired
     private ObjectMapper objectMapper;
