@@ -1,7 +1,7 @@
 package com.replan.team;
 
-import com.replan.business.impl.AddTeamMemberImpl;
-import com.replan.business.impl.CreateTeamImpl;
+import com.replan.business.impl.teamMember.AddTeamMemberImpl;
+import com.replan.business.impl.team.CreateTeamImpl;
 import com.replan.business.usecases.team.CreateTeamUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.domain.objects.Role;

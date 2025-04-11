@@ -1,6 +1,6 @@
 package com.replan.team;
 
-import com.replan.business.impl.CreateTeamImpl;
+import com.replan.business.impl.team.CreateTeamImpl;
 import com.replan.business.usecases.team.CreateTeamUseCase;
 import com.replan.domain.objects.Team;
 import com.replan.domain.requests.CreateTeamRequest;
