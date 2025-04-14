@@ -8,16 +8,6 @@ stages:
 
 build:
   stage: build
-  before_script:
-    - echo "JAVA Version:"
-    - java -version
-    - echo "Git Version:"
-    - git --version
-    - echo "PATH:"
-    - echo $env:PATH
-    - echo "JAVA_HOME:"
-    - echo $env:JAVA_HOME
-
   script:
     - Set-Location APIcred
     - .\gradlew.bat bootJar
