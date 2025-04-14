@@ -9,7 +9,6 @@ stages:
 build:
   stage: build
   before_script:
-    - git config --global --add safe.directory "$CI_PROJECT_DIR"
     - echo "JAVA Version:"
     - java -version
     - echo "Git Version:"
