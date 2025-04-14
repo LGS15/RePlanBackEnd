@@ -52,5 +52,5 @@ public class TeamController {
         return ResponseEntity.ok(teams);
     }
 
-    //This is where I should add the new one
+    //This is where I should add the new endpoint
 }
