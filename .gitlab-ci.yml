@@ -10,6 +10,15 @@ build:
   stage: build
   before_script:
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - echo "JAVA Version:"
+    - java -version
+    - echo "Git Version:"
+    - git --version
+    - echo "PATH:"
+    - echo $env:PATH
+    - echo "JAVA_HOME:"
+    - echo $env:JAVA_HOME
+
   script:
     - Set-Location APIcred
     - .\gradlew.bat bootJar
