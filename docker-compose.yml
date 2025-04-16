@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   dev-db:
     image: mysql:8
@@ -18,7 +16,12 @@ services:
       - dev-db
     volumes:
       - ./flyway/sql:/flyway/sql
-    command: -url=jdbc:mysql://dev-db:3306/team_platform -user=root -password=root migrate
+    command:
+      - -connectRetries=10
+      - -url=jdbc:mysql://dev-db:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false
+      - -user=root
+      - -password=root
+      - migrate
 
   api:
     build:
@@ -29,7 +32,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://dev-db:3306/team_platform
+      SPRING_DATASOURCE_URL: jdbc:mysql://dev-db:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
 
