@@ -51,4 +51,6 @@ public class TeamController {
         List<TeamResponse> teams = getTeamsByOwnerUseCase.getTeamsByOwner(ownerId);
         return ResponseEntity.ok(teams);
     }
+
+    //This is where I should add the new endpoint
 }

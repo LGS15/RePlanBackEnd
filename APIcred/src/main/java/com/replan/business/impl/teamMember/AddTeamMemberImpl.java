@@ -1,4 +1,4 @@
-package com.replan.business.impl;
+package com.replan.business.impl.teamMember;
 
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.domain.objects.Team;

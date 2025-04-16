@@ -1,4 +1,4 @@
-package com.replan.business.impl;
+package com.replan.business.impl.team;
 
 import java.util.List;
 import java.util.stream.Collectors;
