@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  dev-db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: team_platform
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+  flyway:
+    image: flyway/flyway:9
+    depends_on:
+      - dev-db
+    volumes:
+      - ./flyway/sql:/flyway/sql
+    command: -url=jdbc:mysql://dev-db:3306/team_platform -user=root -password=root migrate
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - dev-db
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://dev-db:3306/team_platform
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+volumes:
+  db-data:
