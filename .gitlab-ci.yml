@@ -4,13 +4,14 @@ variables:
 stages:
   - build
   - test
+  - sonar
   - docker
 
 build:
   stage: build
   script:
-    - Set-Location APIcred
-    - .\gradlew.bat bootJar
+    - cd APIcred
+    - ./gradlew bootJar
   artifacts:
     paths:
       - APIcred/build/libs/
@@ -18,14 +19,29 @@ build:
 test:
   stage: test
   script:
-    - Set-Location APIcred
-    - .\gradlew.bat test
+    - cd APIcred
+    - ./gradlew test
+
+sonarqube:
+  stage: sonar
+  image: gradle:8.3-jdk17
+  script:
+    - cd APIcred
+    - ./gradlew sonar
+  only:
+    - merge_requests
+    - main
+    - master
+  allow_failure: true
+  variables:
+    SONAR_HOST_URL: "http://host.docker.internal:9000"
+    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
 
 docker:
   stage: docker
   script:
-    - Set-Location APIcred
-    - .\gradlew.bat build
-    - Set-Location ..
+    - cd APIcred
+    - ./gradlew build
+    - cd ..
     - docker build -t replan .
     - docker run -d -p 8080:8080 --name replanBE replan
