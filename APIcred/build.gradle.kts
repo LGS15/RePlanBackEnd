@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.4.3"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("jacoco")
 	id("org.sonarqube") version "6.0.1.5171"
 }
 
@@ -36,9 +37,43 @@ sonar {
 		property("sonar.projectName", "RePlan Backend")
 		property("sonar.host.url", "http://localhost:9000")
 		property("sonar.token", "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb")
+		property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+
+		property("sonar.sources", "src/main/java")
+		property("sonar.tests", "src/test/java")
+
+		// compiled class
+		property("sonar.java.binaries", "build/classes/java/main")
+		property("sonar.java.test.binaries", "build/classes/java/test")
+
+		// test results
+		property("sonar.junit.reportPaths", "build/test-results/test")
+
+
+
+
+		// test package as inclusion
+		property("sonar.test.inclusions", "**/*Test.java")
 	}
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = "0.8.11"
+}
+
+tasks.test {
+	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
 }

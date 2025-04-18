@@ -27,7 +27,7 @@ sonarqube:
   image: gradle:8.3-jdk17
   script:
     - cd APIcred
-    - ./gradlew sonar
+    - ./gradlew test jacocoTestReport sonar
   only:
     - merge_requests
     - main
@@ -36,7 +36,6 @@ sonarqube:
   variables:
     SONAR_HOST_URL: "http://host.docker.internal:9000"
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
-
 docker:
   stage: docker
   script:
