@@ -1,7 +1,7 @@
 package com.replan.team;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.replan.TestConfig;
+import com.replan.TeamTestConfig;
 import com.replan.business.usecases.team.CreateTeamUseCase;
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TeamController.class)
-@Import(TestConfig.class)
+@Import(TeamTestConfig.class)
 public class TeamControllerTest {
 
     @Autowired
