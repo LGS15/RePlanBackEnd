@@ -18,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/teams")
+@CrossOrigin(origins="http://localhost:5173")
 public class TeamController {
 
     //Added Comment For Test

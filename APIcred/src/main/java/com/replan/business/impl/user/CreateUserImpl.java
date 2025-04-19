@@ -6,6 +6,7 @@ import com.replan.domain.objects.User;
 import com.replan.domain.requests.CreateUserRequest;
 import com.replan.domain.responses.CreateUserResponse;
 import com.replan.persistance.UserRepository;
+import com.replan.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class CreateUserImpl implements CreateUserUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;  // Add this
 
     @Override
     @Transactional
@@ -34,11 +36,15 @@ public class CreateUserImpl implements CreateUserUseCase {
         // save to db
         userRepository.save(UserMapper.toEntity(user));
 
-        // map to response
+        // Generate JWT token
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        // map to response with token
         return new CreateUserResponse(
                 user.getId().toString(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                token  // Include the token
         );
     }
 }

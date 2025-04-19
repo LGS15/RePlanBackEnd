@@ -7,12 +7,14 @@ import com.replan.domain.requests.LoginUserRequest;
 import com.replan.persistance.dto.UserDTO;
 import com.replan.persistance.entity.UserEntity;
 
+import java.util.UUID;
+
 public class UserMapper {
 
     public static User toDomain(UserEntity entity) {
         if (entity == null) return null;
         return new User(
-                entity.getId(),
+                UUID.fromString(entity.getId()),
                 entity.getEmail(),
                 entity.getUsername(),
                 entity.getPassword()
@@ -22,7 +24,8 @@ public class UserMapper {
     public static UserEntity toEntity(User user) {
         if (user == null) return null;
         UserEntity entity = new UserEntity();
-        entity.setId(user.getId());
+
+
         entity.setEmail(user.getEmail());
         entity.setUsername(user.getUsername());
         entity.setPassword(user.getPassword());

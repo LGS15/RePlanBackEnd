@@ -6,19 +6,19 @@ import com.replan.domain.objects.User;
 import com.replan.domain.requests.LoginUserRequest;
 import com.replan.domain.responses.LoginUserResponse;
 import com.replan.persistance.UserRepository;
+import com.replan.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class LoginUserImpl implements LoginUserUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;  // Add this
 
-    public LoginUserImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public LoginUserResponse login(LoginUserRequest request) {
@@ -30,6 +30,15 @@ public class LoginUserImpl implements LoginUserUseCase {
         }
 
         User user = UserMapper.toDomain(userEntity);
-        return new LoginUserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
+
+        // Generate JWT token
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new LoginUserResponse(
+                user.getId().toString(),
+                user.getUsername(),
+                user.getEmail(),
+                token  // Include the token
+        );
     }
 }
