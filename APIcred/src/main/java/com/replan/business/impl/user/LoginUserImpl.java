@@ -17,7 +17,7 @@ public class LoginUserImpl implements LoginUserUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;  // Add this
+    private final JwtUtil jwtUtil;
 
 
     @Override
@@ -31,14 +31,14 @@ public class LoginUserImpl implements LoginUserUseCase {
 
         User user = UserMapper.toDomain(userEntity);
 
-        // Generate JWT token
+
         String token = jwtUtil.generateToken(user.getEmail());
 
         return new LoginUserResponse(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
-                token  // Include the token
+                token
         );
     }
 }

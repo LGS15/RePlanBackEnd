@@ -21,30 +21,30 @@ public class CreateUserImpl implements CreateUserUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;  // Add this
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional
     public CreateUserResponse createUser(CreateUserRequest request) {
-        // map to domain object
+
         User user = UserMapper.fromCreateRequest(request);
 
         user.setId(UUID.randomUUID());
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
 
-        // save to db
+
         userRepository.save(UserMapper.toEntity(user));
 
-        // Generate JWT token
+
         String token = jwtUtil.generateToken(user.getEmail());
 
-        // map to response with token
+
         return new CreateUserResponse(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
-                token  // Include the token
+                token
         );
     }
 }
