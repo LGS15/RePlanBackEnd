@@ -2,12 +2,16 @@ package com.replan.controller;
 
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
+import com.replan.business.usecases.teamMember.GetTeamMembersByTeamUseCase;
 import com.replan.domain.requests.AddTeamMemberRequest;
+import com.replan.domain.requests.GetTeamMembersByTeamRequest;
 import com.replan.domain.responses.AddTeamMemberResponse;
 import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.domain.requests.CreateTeamRequest;
 import com.replan.business.usecases.team.CreateTeamUseCase;
+import com.replan.domain.responses.GetTeamMembersByTeamResponse;
 import com.replan.domain.responses.TeamResponse;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,18 +23,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/teams")
 @CrossOrigin(origins="http://localhost:5173")
+@AllArgsConstructor
 public class TeamController {
 
     //Added Comment For Test
     private final CreateTeamUseCase createTeamUseCase;
     private final AddTeamMemberUseCase addTeamMemberUseCase;
     private final GetTeamsByOwnerUseCase getTeamsByOwnerUseCase;
+    private final GetTeamMembersByTeamUseCase getTeamMembersByTeamUseCase;
 
-    public TeamController(CreateTeamUseCase createTeamUseCase, AddTeamMemberUseCase addTeamMemberUseCase, GetTeamsByOwnerUseCase getTeamsByOwnerUseCase) {
-        this.createTeamUseCase = createTeamUseCase;
-        this.addTeamMemberUseCase = addTeamMemberUseCase;
-        this.getTeamsByOwnerUseCase = getTeamsByOwnerUseCase;
-    }
+
 
     @PostMapping
     public ResponseEntity<CreateTeamResponse> createTeam(@RequestBody CreateTeamRequest request){
@@ -53,5 +55,13 @@ public class TeamController {
         return ResponseEntity.ok(teams);
     }
 
-    //This is where I should add the new endpoint
+    @GetMapping(".{teamId}/members")
+    public ResponseEntity<GetTeamMembersByTeamResponse> getTeamMembers(@PathVariable String teamId){
+        GetTeamMembersByTeamRequest req = new GetTeamMembersByTeamRequest(teamId);
+
+        GetTeamMembersByTeamResponse resp = getTeamMembersByTeamUseCase.getTeamMembers(req);
+        return ResponseEntity.ok(resp);
+    }
+
+
 }

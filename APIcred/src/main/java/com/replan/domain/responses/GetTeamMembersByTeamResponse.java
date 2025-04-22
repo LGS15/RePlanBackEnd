@@ -9,10 +9,10 @@ import java.util.List;
 @Data
 
 public class GetTeamMembersByTeamResponse {
-    private List<TeamMemberDto> members;
+    private List<AddTeamMemberResponse> members;
     private int totalCount;
 
-    public GetTeamMembersByTeamResponse(List<TeamMemberDto> members) {
+    public GetTeamMembersByTeamResponse(List<AddTeamMemberResponse> members) {
         this.members = members;
         this.totalCount = members.size();
     }

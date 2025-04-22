@@ -1,13 +1,13 @@
 package com.replan.persistance;
 
 import com.replan.domain.objects.TeamMember;
+import com.replan.persistance.entity.TeamMemberEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface TeamMemberRepository {
+public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, String> {
 
-    TeamMember save(TeamMember teamMember);
-    Optional<TeamMember> findById(String id);
-    List<TeamMember> findByTeamId(String teamId);
+    List<TeamMemberEntity> findByTeamId(String teamId);
 }

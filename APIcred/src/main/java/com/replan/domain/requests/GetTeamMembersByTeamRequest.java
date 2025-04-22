@@ -9,5 +9,5 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 public class GetTeamMembersByTeamRequest {
     private String teamId;
-    private String ownerId;
+
 }

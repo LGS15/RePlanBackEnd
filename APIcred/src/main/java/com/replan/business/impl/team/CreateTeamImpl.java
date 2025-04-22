@@ -1,10 +1,12 @@
 package com.replan.business.impl.team;
 
+import com.replan.business.mapper.TeamMapper;
 import com.replan.business.usecases.team.CreateTeamUseCase;
 import com.replan.domain.objects.Team;
 import com.replan.domain.requests.CreateTeamRequest;
 import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.persistance.TeamRepository;
+import com.replan.persistance.entity.TeamEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,19 +30,10 @@ public class CreateTeamImpl  implements CreateTeamUseCase {
             throw new IllegalArgumentException("Owner id cannot be empty");
         }
 
-        Team newTeam = new Team(
-                request.getTeamName(),
-                request.getGameName(),
-                request.getOwnerId()
-        );
+        TeamEntity toSave = TeamMapper.toEntity(request);
 
-        Team savedTeam = teamRepository.save(newTeam);
+        TeamEntity saved = teamRepository.save(toSave);
 
-        return new CreateTeamResponse(
-                savedTeam.getId(),
-                savedTeam.getTeamName(),
-                savedTeam.getGameName(),
-                savedTeam.getOwnerId()
-        );
+        return TeamMapper.toCreateResponse(saved);
    }
 }

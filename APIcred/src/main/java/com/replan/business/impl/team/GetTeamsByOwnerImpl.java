@@ -8,6 +8,8 @@ import com.replan.domain.objects.Team;
 import com.replan.domain.responses.TeamResponse;
 import com.replan.persistance.TeamRepository;
 import org.springframework.stereotype.Service;
+import com.replan.business.mapper.TeamMapper;
+
 
 @Service
 public class GetTeamsByOwnerImpl implements GetTeamsByOwnerUseCase {
@@ -20,13 +22,8 @@ public class GetTeamsByOwnerImpl implements GetTeamsByOwnerUseCase {
 
     @Override
     public List<TeamResponse> getTeamsByOwner(String ownerId) {
-        List <Team> teams = teamRepository.findByOwnerId(ownerId);
-        return teams.stream()
-                .map(team -> new TeamResponse(
-                        team.getId(),
-                        team.getTeamName(),
-                        team.getGameName(),
-                        team.getOwnerId()
-                )).collect(Collectors.toList());
+        return teamRepository.findByOwnerId(ownerId).stream()
+                .map(TeamMapper::toTeamResponse)
+                .collect(Collectors.toList());
     }
 }
