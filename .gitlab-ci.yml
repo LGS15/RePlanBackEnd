@@ -6,6 +6,10 @@ stages:
   - test
   - sonar
   - docker
+  -
+
+before_script:
+  - git config --global --add safe.directory "$CI_PROJECT_DIR"
 
 build:
   stage: build
