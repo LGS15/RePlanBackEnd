@@ -14,11 +14,4 @@ public class CreateUserResponse {
     private String email;
     private String token;
 
-    // Keept only for backward compatibility with existing constructor
-    public CreateUserResponse(String userId, String username, String email) {
-        this.userId = userId;
-        this.username = username;
-        this.email = email;
-        this.token = null;
-    }
 }

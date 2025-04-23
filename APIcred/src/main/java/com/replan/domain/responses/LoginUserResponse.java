@@ -13,11 +13,5 @@ public class LoginUserResponse {
     private String email;
     private String token;
 
-    //Same as the CreateUserResponse
-    public LoginUserResponse(String userId, String username, String email) {
-        this.userId = userId;
-        this.username = username;
-        this.email = email;
-        this.token = null;
-    }
+
 }

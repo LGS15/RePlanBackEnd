@@ -1,13 +1,17 @@
 package com.replan.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -22,36 +26,44 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // disable CSRF entirely (for a stateless JSON API)
-                .csrf(AbstractHttpConfigurer::disable)
 
-                // pick up your CorsConfigurationSource bean automatically
-                .cors(withDefaults())
+        @Autowired
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-                // stateless session management (if you’re doing JWT)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(STATELESS))
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .cors(withDefaults())
+                    .sessionManagement(sm -> sm.sessionCreationPolicy(STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                // your authorization rules
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
-                        .anyRequest().authenticated()
-                );
+            return http.build();
+        }
 
-        return http.build();
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+            CorsConfiguration cfg = new CorsConfiguration();
+            cfg.setAllowedOrigins(List.of("http://localhost:5173"));
+            cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+            cfg.setAllowedHeaders(List.of("*"));
+            cfg.setAllowCredentials(true);
+            cfg.setExposedHeaders(List.of("Authorization"));
 
-    // also wire up a global CORS policy to let your Vite/CRA dev server through:
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of("http://localhost:5173"));
-        cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        cfg.setAllowedHeaders(List.of("*"));
-        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", cfg);
-        return src;
-    }
+            UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+            src.registerCorsConfiguration("/**", cfg);
+            return src;
+        }
+
+
+
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+            return authConfig.getAuthenticationManager();
+        }
 }
