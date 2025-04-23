@@ -8,12 +8,13 @@ stages:
   - docker
 
 
-
+default:
+  before_script:
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
 
 build:
   stage: build
-  before_script:
-    - git config --global --add safe.directory C:/GitLab-Runner/builds/9TQ6CwjQZ/0/I523343/sem3-backend
+
   script:
     - cd APIcred
     - ./gradlew bootJar
@@ -23,8 +24,7 @@ build:
 
 test:
   stage: test
-  before_script:
-    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+
   script:
     - cd APIcred
     - ./gradlew test
@@ -32,8 +32,7 @@ test:
 sonarqube:
   stage: sonar
   image: gradle:8.3-jdk17
-  before_script:
-    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+
   script:
     - cd APIcred
     - ./gradlew test jacocoTestReport sonar
@@ -47,8 +46,7 @@ sonarqube:
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
 docker:
   stage: docker
-  before_script:
-    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+
   script:
     - cd APIcred
     - ./gradlew build
