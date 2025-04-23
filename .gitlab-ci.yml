@@ -9,7 +9,7 @@ stages:
   -
 
 before_script:
-  - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  - git config --global --add safe.directory C:/GitLab-Runner/builds/9TQ6CwjQZ/0/I523343/sem3-backend
 
 build:
   stage: build
