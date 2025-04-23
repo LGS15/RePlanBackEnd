@@ -11,61 +11,73 @@ import com.replan.domain.responses.AddTeamMemberResponse;
 import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
-import com.replan.persistance.team.InMemoryTeamMemberRepository;
-import com.replan.persistance.team.InMemoryTeamRepository;
+
+import com.replan.persistance.entity.TeamEntity;
+import com.replan.persistance.entity.TeamMemberEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
 
-public class AddTeamMemberImplTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+class AddTeamMemberImplTest {
+
+    @Mock
     private TeamRepository teamRepository;
-    private TeamMemberRepository teamMemberRepository;
-    private AddTeamMemberUseCase addTeamMemberUseCase;
-    private CreateTeamUseCase createTeamUseCase;
+    @Mock
+    private TeamMemberRepository tmRepo;
+    @InjectMocks
+    private AddTeamMemberImpl subject;
 
-    @BeforeEach
-    public void setUp() {
-        teamRepository = new InMemoryTeamRepository();
-        teamMemberRepository = new InMemoryTeamMemberRepository();
-        addTeamMemberUseCase = new AddTeamMemberImpl(teamRepository, teamMemberRepository);
-        createTeamUseCase = new CreateTeamImpl(teamRepository);
+    @BeforeEach void setUp() { MockitoAnnotations.openMocks(this); }
+
+    @Test
+    void happyPath_shouldSaveAndReturnResponse() {
+        // team exists
+        var teamEnt = new TeamEntity(); teamEnt.setId("t1");
+        when(teamRepository.findById("t1")).thenReturn(Optional.of(teamEnt));
+
+        // save in repo
+        var me = new TeamMemberEntity();
+        me.setId("m1"); me.setTeamId("t1"); me.setUserId("u1"); me.setRole(Role.valueOf("PLAYER"));
+        when(tmRepo.save(any(TeamMemberEntity.class))).thenReturn(me);
+
+        // request
+        var req = new AddTeamMemberRequest();
+        req.setTeamId("t1");
+        req.setUserId("u1");
+        req.setRole(Role.PLAYER);
+
+        AddTeamMemberResponse resp = subject.addTeamMember(req);
+
+        assertThat(resp.getTeamMemberId()).isEqualTo("m1");
+        assertThat(resp.getTeamId()).isEqualTo("t1");
+        assertThat(resp.getUserId()).isEqualTo("u1");
+        assertThat(resp.getRole()).isEqualTo(Role.PLAYER);
+
+        verify(tmRepo).save(argThat(ent ->
+                ent.getTeamId().equals("t1")
+                        && ent.getUserId().equals("u1")
+                        && ent.getRole().equals(Role.valueOf("PLAYER"))
+        ));
     }
 
     @Test
-    public void testAddTeamMemberSuccess() {
-        // Create a team
-        CreateTeamRequest teamRequest = new CreateTeamRequest("Alpha Squad", "League of Legends", "owner123");
-        CreateTeamResponse teamResponse = createTeamUseCase.createTeam(teamRequest);
-
-        // Prepare request
-        AddTeamMemberRequest addRequest = new AddTeamMemberRequest();
-        addRequest.setTeamId(teamResponse.getTeamId());
-        addRequest.setUserId("user456");
-        addRequest.setRole(Role.PLAYER);
-
-        // Adding the team member
-        AddTeamMemberResponse addResponse = addTeamMemberUseCase.addTeamMember(addRequest);
-
-        // Verify outcome
-        assertNotNull(addResponse.getTeamMemberId());
-        assertEquals(teamResponse.getTeamId(), addResponse.getTeamId());
-        assertEquals("user456", addResponse.getUserId());
-        assertEquals(Role.PLAYER, addResponse.getRole());
-    }
-
-    @Test
-    public void testAddTeamMemberTeamNotFound() {
-        // Give a request with a non-existent teamId
-        AddTeamMemberRequest addRequest = new AddTeamMemberRequest();
-        addRequest.setTeamId("nonexistentTeamId");
-        addRequest.setUserId("user456");
-        addRequest.setRole(Role.PLAYER);
-
-        // Exception because the team is not found/doesn't exist
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            addTeamMemberUseCase.addTeamMember(addRequest);
-        });
-        assertEquals("Team not found", exception.getMessage());
+    void missingTeam_shouldThrow() {
+        when(teamRepository.findById("nx")).thenReturn(Optional.empty());
+        var req = new AddTeamMemberRequest(); req.setTeamId("nx");
+        assertThatThrownBy(() -> subject.addTeamMember(req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Team not found");
     }
 }

@@ -65,7 +65,7 @@ public class UserControllerTest {
     void testRegisterUser() throws Exception {
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> {
             UserEntity user = invocation.getArgument(0);
-            user.setId(UUID.randomUUID());
+            user.setId(String.valueOf(UUID.randomUUID()));
             return user;
         });
 
@@ -87,7 +87,7 @@ public class UserControllerTest {
         String rawPassword = "secret123";
 
         UserEntity user = new UserEntity();
-        user.setId(UUID.randomUUID());
+        user.setId(String.valueOf(UUID.randomUUID()));
         user.setEmail("mikochi@example.com");
         user.setUsername("Mikochi");
         user.setPassword(passwordEncoder.encode(rawPassword));

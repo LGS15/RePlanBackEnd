@@ -55,7 +55,7 @@ public class TeamController {
         return ResponseEntity.ok(teams);
     }
 
-    @GetMapping(".{teamId}/members")
+    @GetMapping("/{teamId}/members")
     public ResponseEntity<GetTeamMembersByTeamResponse> getTeamMembers(@PathVariable String teamId){
         GetTeamMembersByTeamRequest req = new GetTeamMembersByTeamRequest(teamId);
 
