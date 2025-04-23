@@ -22,6 +22,8 @@ build:
 
 test:
   stage: test
+  before_script:
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
   script:
     - cd APIcred
     - ./gradlew test
@@ -29,6 +31,8 @@ test:
 sonarqube:
   stage: sonar
   image: gradle:8.3-jdk17
+  before_script:
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
   script:
     - cd APIcred
     - ./gradlew test jacocoTestReport sonar
