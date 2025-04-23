@@ -42,6 +42,8 @@ sonarqube:
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
 docker:
   stage: docker
+  before_script:
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
   script:
     - cd APIcred
     - ./gradlew build
