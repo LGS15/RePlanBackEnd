@@ -9,11 +9,11 @@ import com.replan.persistance.entity.TeamMemberEntity;
 
 public class TeamMemberMapper {
 
-    public static TeamMemberEntity toEntity(AddTeamMemberRequest d) {
+    public static TeamMemberEntity toEntity(AddTeamMemberRequest d, String userId) {
         TeamMemberEntity e = new TeamMemberEntity();
 
         e.setTeamId(d.getTeamId());
-        e.setUserId(d.getUserId());
+        e.setUserId(userId);
         e.setRole(d.getRole());
         return e;
     }

@@ -10,6 +10,7 @@ import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.business.usecases.teamMember.GetTeamMembersByTeamUseCase;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
+import com.replan.persistance.UserRepository;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,11 @@ public class TeamTestConfig {
     }
 
     @Bean
+    public UserRepository userRepository() {
+        return Mockito.mock(UserRepository.class);
+    }
+
+    @Bean
     public CreateTeamUseCase createTeamUseCase(TeamRepository teamRepository) {
         return new CreateTeamImpl(teamRepository);
     }
@@ -37,9 +43,10 @@ public class TeamTestConfig {
     @Bean
     public AddTeamMemberUseCase addTeamMemberUseCase(
             TeamRepository teamRepository,
-            TeamMemberRepository teamMemberRepository
+            TeamMemberRepository teamMemberRepository,
+            UserRepository userRepository
     ) {
-        return new AddTeamMemberImpl(teamRepository, teamMemberRepository);
+        return new AddTeamMemberImpl(teamRepository, teamMemberRepository,userRepository);
     }
 
     @Bean

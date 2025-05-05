@@ -11,8 +11,10 @@ import com.replan.domain.requests.CreateTeamRequest;
 
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
+import com.replan.persistance.UserRepository;
 import com.replan.persistance.entity.TeamEntity;
 import com.replan.persistance.entity.TeamMemberEntity;
+import com.replan.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,9 @@ public class TeamControllerTest {
     @MockitoBean
     private TeamMemberRepository teamMemberRepository;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -98,15 +103,22 @@ public class TeamControllerTest {
         // given
         var teamId = "team123";
         var req = new AddTeamMemberRequest();
-        req.setUserId("user456");
+        req.setEmail("user@example.com"); // Changed from userId to email
         req.setRole(Role.PLAYER);
-        // path variable will set teamId
+
 
         var teamEntity = new TeamEntity();
         teamEntity.setId(teamId);
-        // stub that the team exists:
+
         when(teamRepository.findById(teamId))
                 .thenReturn(Optional.of(teamEntity));
+
+
+        var userEntity = new UserEntity();
+        userEntity.setId("user456");
+        userEntity.setEmail("user@example.com");
+        when(userRepository.findByEmail("user@example.com"))
+                .thenReturn(Optional.of(userEntity));
 
         var tmEntity = new TeamMemberEntity();
         tmEntity.setId("member123");
@@ -127,7 +139,6 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.userId").value("user456"))
                 .andExpect(jsonPath("$.role").value("PLAYER"));
     }
-
     @Test
     void testGetTeamsByOwnerEndpoint() throws Exception {
         // given

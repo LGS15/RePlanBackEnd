@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AddTeamMemberRequest {
     private String teamId;
-    private String userId;
+    private String email;
     private Role role;
 }

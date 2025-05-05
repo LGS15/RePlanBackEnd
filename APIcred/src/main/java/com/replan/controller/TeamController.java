@@ -44,7 +44,10 @@ public class TeamController {
     public ResponseEntity<AddTeamMemberResponse> addTeamMember(
             @PathVariable String teamId,
             @RequestBody AddTeamMemberRequest request){
+
         request.setTeamId(teamId);
+
+
         AddTeamMemberResponse response = addTeamMemberUseCase.addTeamMember(request);
         return ResponseEntity.ok(response);
     }

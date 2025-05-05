@@ -12,8 +12,10 @@ import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
 
+import com.replan.persistance.UserRepository;
 import com.replan.persistance.entity.TeamEntity;
 import com.replan.persistance.entity.TeamMemberEntity;
+import com.replan.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -36,6 +38,8 @@ class AddTeamMemberImplTest {
     private TeamRepository teamRepository;
     @Mock
     private TeamMemberRepository tmRepo;
+    @Mock
+    private UserRepository userRepository;
     @InjectMocks
     private AddTeamMemberImpl subject;
 
@@ -44,18 +48,28 @@ class AddTeamMemberImplTest {
     @Test
     void happyPath_shouldSaveAndReturnResponse() {
         // team exists
-        var teamEnt = new TeamEntity(); teamEnt.setId("t1");
+        var teamEnt = new TeamEntity();
+        teamEnt.setId("t1");
         when(teamRepository.findById("t1")).thenReturn(Optional.of(teamEnt));
+
+        // user exists
+        var userEnt = new UserEntity();
+        userEnt.setId("u1");
+        userEnt.setEmail("user@example.com");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
 
         // save in repo
         var me = new TeamMemberEntity();
-        me.setId("m1"); me.setTeamId("t1"); me.setUserId("u1"); me.setRole(Role.valueOf("PLAYER"));
+        me.setId("m1");
+        me.setTeamId("t1");
+        me.setUserId("u1");
+        me.setRole(Role.valueOf("PLAYER"));
         when(tmRepo.save(any(TeamMemberEntity.class))).thenReturn(me);
 
         // request
         var req = new AddTeamMemberRequest();
         req.setTeamId("t1");
-        req.setUserId("u1");
+        req.setEmail("user@example.com"); // Changed from userId to email
         req.setRole(Role.PLAYER);
 
         AddTeamMemberResponse resp = subject.addTeamMember(req);
@@ -75,9 +89,30 @@ class AddTeamMemberImplTest {
     @Test
     void missingTeam_shouldThrow() {
         when(teamRepository.findById("nx")).thenReturn(Optional.empty());
-        var req = new AddTeamMemberRequest(); req.setTeamId("nx");
+        var req = new AddTeamMemberRequest();
+        req.setTeamId("nx");
         assertThatThrownBy(() -> subject.addTeamMember(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team not found");
+    }
+
+    @Test
+    void missingUser_shouldThrow() {
+        // team exists
+        var teamEnt = new TeamEntity();
+        teamEnt.setId("t1");
+        when(teamRepository.findById("t1")).thenReturn(Optional.of(teamEnt));
+
+        // user does not exist
+        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+        var req = new AddTeamMemberRequest();
+        req.setTeamId("t1");
+        req.setEmail("nonexistent@example.com");
+        req.setRole(Role.PLAYER);
+
+        assertThatThrownBy(() -> subject.addTeamMember(req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("User with email nonexistent@example.com not found");
     }
 }
