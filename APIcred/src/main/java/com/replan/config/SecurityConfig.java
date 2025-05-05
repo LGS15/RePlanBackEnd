@@ -60,7 +60,7 @@ public class SecurityConfig {
             return src;
         }
 
-
+        //Nothing to be seen here btw
 
         @Bean
         public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
