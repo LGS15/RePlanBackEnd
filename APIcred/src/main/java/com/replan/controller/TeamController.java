@@ -3,14 +3,13 @@ package com.replan.controller;
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.business.usecases.teamMember.GetTeamMembersByTeamUseCase;
+import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
 import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.requests.GetTeamMembersByTeamRequest;
-import com.replan.domain.responses.AddTeamMemberResponse;
-import com.replan.domain.responses.CreateTeamResponse;
+import com.replan.domain.requests.RemoveTeamMemberRequest;
+import com.replan.domain.responses.*;
 import com.replan.domain.requests.CreateTeamRequest;
 import com.replan.business.usecases.team.CreateTeamUseCase;
-import com.replan.domain.responses.GetTeamMembersByTeamResponse;
-import com.replan.domain.responses.TeamResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +30,7 @@ public class TeamController {
     private final AddTeamMemberUseCase addTeamMemberUseCase;
     private final GetTeamsByOwnerUseCase getTeamsByOwnerUseCase;
     private final GetTeamMembersByTeamUseCase getTeamMembersByTeamUseCase;
-
+    private final RemoveTeamMemberUseCase removeTeamMemberUseCase;
 
 
     @PostMapping
@@ -66,5 +65,11 @@ public class TeamController {
         return ResponseEntity.ok(resp);
     }
 
+    @DeleteMapping("/{teamId}/members/{userId}")
+    public ResponseEntity<RemoveTeamMemberResponse> removeTeamMember(@PathVariable String teamId, @PathVariable String userId ){
+        RemoveTeamMemberRequest request= new RemoveTeamMemberRequest(teamId, userId);
+        RemoveTeamMemberResponse response = removeTeamMemberUseCase.removeTeamMember(request);
+        return ResponseEntity.ok(response);
+    }
 
 }
