@@ -103,7 +103,7 @@ public class TeamControllerTest {
         // given
         var teamId = "team123";
         var req = new AddTeamMemberRequest();
-        req.setEmail("user@example.com"); // Changed from userId to email
+        req.setEmail("user@example.com"); // Changed from userId to email but I might wanna change this back
         req.setRole(Role.PLAYER);
 
 
