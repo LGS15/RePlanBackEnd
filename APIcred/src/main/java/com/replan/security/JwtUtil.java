@@ -80,4 +80,42 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public String refreshToken(String token) {
+        try {
+
+            if (!validateToken(token)) {
+                return null;
+            }
+
+            // Check if the token is close to expiry
+            final Date expiration = getExpirationDateFromToken(token);
+            long expiryTime = expiration.getTime();
+            long currentTime = System.currentTimeMillis();
+
+            // If token is not near expiration, just return the same token
+            if (expiryTime - currentTime > 15 * 60 * 1000) {
+                return token;
+            }
+
+
+            String email = getEmailFromToken(token);
+
+
+            return generateToken(email);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    public boolean isTokenCloseToExpiry(String token) {
+        try {
+            final Date expiration = getExpirationDateFromToken(token);
+            // Token is close to expiry if less than 15 minutes remaining
+            return expiration.getTime() - System.currentTimeMillis() < 15 * 60 * 1000;
+        } catch (Exception e) {
+            return true;
+        }
+    }
 }
