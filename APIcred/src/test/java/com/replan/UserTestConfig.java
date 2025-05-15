@@ -15,18 +15,28 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @TestConfiguration
 public class UserTestConfig {
     @Bean
+    @Primary
     public UserRepository userRepository() {
         return Mockito.mock(UserRepository.class);
     }
 
+
     @Bean
-    public CreateUserUseCase createUserUseCase(UserRepository userRepository, BCryptPasswordEncoder encoder, JwtUtil jwtUtil) {
-        return new CreateUserImpl(userRepository, encoder, jwtUtil);
+    @Primary
+    public JwtUtil jwtUtil() {
+        return Mockito.mock(JwtUtil.class);
     }
 
     @Bean
-    public LoginUserUseCase loginUserUseCase(UserRepository userRepository, BCryptPasswordEncoder encoder, JwtUtil jwtUtil) {
-        return new LoginUserImpl(userRepository, encoder, jwtUtil);
+    @Primary
+    public CreateUserUseCase createUserUseCase() {
+        return Mockito.mock(CreateUserUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public LoginUserUseCase loginUserUseCase() {
+        return Mockito.mock(LoginUserUseCase.class);
     }
 
     @Bean

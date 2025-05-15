@@ -44,9 +44,16 @@ public class UserController {
 
     //HAHA - made you look!
     @PostMapping("/login")
-    public ResponseEntity<LoginUserResponse> login(@RequestBody LoginUserRequest request) {
-        LoginUserResponse response = loginUserUseCase.login(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> login(@RequestBody LoginUserRequest request) {
+        try {
+            LoginUserResponse response = loginUserUseCase.login(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("Invalid credentials")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            }
+            throw e;
+        }
     }
 
     @PostMapping("/refresh-token")

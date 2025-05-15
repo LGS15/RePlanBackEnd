@@ -36,8 +36,8 @@ public class TeamTestConfig {
     }
 
     @Bean
-    public CreateTeamUseCase createTeamUseCase(TeamRepository teamRepository) {
-        return new CreateTeamImpl(teamRepository);
+    public CreateTeamUseCase createTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
+        return new CreateTeamImpl(teamRepository, teamMemberRepository, userRepository);
     }
 
     @Bean
