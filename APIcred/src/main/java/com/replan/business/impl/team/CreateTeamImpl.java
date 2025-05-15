@@ -3,7 +3,7 @@ package com.replan.business.impl.team;
 import com.replan.business.mapper.TeamMapper;
 import com.replan.business.usecases.team.CreateTeamUseCase;
 import com.replan.domain.objects.Role;
-import com.replan.domain.objects.Team;
+
 import com.replan.domain.requests.CreateTeamRequest;
 import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.persistance.TeamMemberRepository;

@@ -47,7 +47,7 @@ sonar {
 		property("sonar.projectKey", "RePlan-Backend")
 		property("sonar.projectName", "RePlan Backend")
 		property("sonar.host.url", "http://localhost:9000")
-		property("sonar.token", "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb")
+		property("sonar.token", "sqp_4725fb7f2f446cda1bb2123267b5d5161ae19d45")
 		property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
 
 		property("sonar.sources", "src/main/java")

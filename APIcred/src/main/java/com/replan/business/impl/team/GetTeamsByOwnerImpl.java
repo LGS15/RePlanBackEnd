@@ -1,10 +1,10 @@
 package com.replan.business.impl.team;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
-import com.replan.domain.objects.Team;
+
 import com.replan.domain.responses.TeamResponse;
 import com.replan.persistance.TeamRepository;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,6 @@ public class GetTeamsByOwnerImpl implements GetTeamsByOwnerUseCase {
     public List<TeamResponse> getTeamsByOwner(String ownerId) {
         return teamRepository.findByOwnerId(ownerId).stream()
                 .map(TeamMapper::toTeamResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

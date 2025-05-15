@@ -3,12 +3,16 @@ package com.replan.team;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.replan.TeamTestConfig;
 
+import com.replan.business.impl.teamMember.RemoveTeamMemberImpl;
+import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
 import com.replan.domain.objects.Role;
 import com.replan.domain.objects.Team;
 import com.replan.domain.objects.TeamMember;
 import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.requests.CreateTeamRequest;
 
+import com.replan.domain.requests.RemoveTeamMemberRequest;
+import com.replan.domain.responses.RemoveTeamMemberResponse;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
 import com.replan.persistance.UserRepository;
@@ -24,6 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,18 +40,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.hamcrest.Matchers.hasSize;
 
-import static org.mockito.Mockito.reset;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 
 
 @SpringBootTest
@@ -66,6 +69,9 @@ public class TeamControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private RemoveTeamMemberUseCase removeTeamMemberUseCase;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -199,5 +205,42 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.members[0].teamId").value(teamId))
                 .andExpect(jsonPath("$.members[0].userId").value(userId))
                 .andExpect(jsonPath("$.totalCount").value(1));
+    }
+
+    @Test
+    void testRemoveTeamMemberEndpoint() throws Exception {
+        // given
+        var teamId = "team123";
+        String userId = UUID.randomUUID().toString();
+        String ownerId = UUID.randomUUID().toString();
+
+        var team = new TeamEntity();
+        team.setId(teamId);
+        team.setOwnerId(ownerId);
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+
+        var teamMember = new TeamMemberEntity();
+        teamMember.setId("member123");
+        teamMember.setTeamId(teamId);
+        teamMember.setUserId(userId);
+        teamMember.setRole(Role.PLAYER);
+        when(teamMemberRepository.findByTeamIdAndUserId(teamId, userId))
+                .thenReturn(Optional.of(teamMember));
+
+        // Mock the response from the use case to avoid the authentication check
+        RemoveTeamMemberResponse expectedResponse = new RemoveTeamMemberResponse(
+                "member123", teamId, userId, Role.PLAYER, true);
+
+        when(removeTeamMemberUseCase.removeTeamMember(any(RemoveTeamMemberRequest.class)))
+                .thenReturn(expectedResponse);
+
+        // when / then
+        mockMvc.perform(delete("/teams/{teamId}/members/{userId}", teamId, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.teamMemberId").value("member123"))
+                .andExpect(jsonPath("$.teamId").value(teamId))
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.removed").value(true));
     }
 }

@@ -44,7 +44,7 @@ public class UserController {
 
     //HAHA - made you look!
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginUserRequest request) {
+    public ResponseEntity<Object> login(@RequestBody LoginUserRequest request) {
         try {
             LoginUserResponse response = loginUserUseCase.login(request);
             return ResponseEntity.ok(response);
@@ -57,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<Object> refreshToken(HttpServletRequest request) {
         // Extract token from Authorization header
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

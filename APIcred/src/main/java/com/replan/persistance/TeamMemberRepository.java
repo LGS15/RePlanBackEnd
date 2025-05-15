@@ -1,6 +1,6 @@
 package com.replan.persistance;
 
-import com.replan.domain.objects.TeamMember;
+
 import com.replan.persistance.entity.TeamMemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 

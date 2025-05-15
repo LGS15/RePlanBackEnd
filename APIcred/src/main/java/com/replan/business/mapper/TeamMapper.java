@@ -7,6 +7,10 @@ import com.replan.persistance.entity.TeamEntity;
 
 public class TeamMapper {
 
+    private TeamMapper() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     public static TeamEntity toEntity(CreateTeamRequest req) {
         TeamEntity e = new TeamEntity();
         e.setTeamName(req.getTeamName());

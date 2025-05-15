@@ -1,6 +1,6 @@
 package com.replan.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,19 +19,27 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import static org.springframework.security.config.Customizer.withDefaults;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import java.util.Arrays;
+
 import java.util.List;
+
+/**
+ *CSRF is disabled *on purpose* because:
+ * - I use stateless JWT auth (no sessions, no cookies)
+ * - Tokens are sent in the Authorization header, not auto-included like cookies
+ * - CORS is properly set up
+ * Suppressed Sonar rule S4502
+ */
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
 
-        @Autowired
-        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
+        @SuppressWarnings("java:S4502")
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
             http
                     .csrf(AbstractHttpConfigurer::disable)
                     .cors(withDefaults())

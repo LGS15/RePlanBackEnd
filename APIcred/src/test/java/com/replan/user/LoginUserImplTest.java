@@ -61,7 +61,9 @@ class LoginUserImplTest {
     @Test
     void badEmail_shouldThrow() {
         when(userRepo.findByEmail("nope")).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> subject.login(new LoginUserRequest("nope", "x")))
+        var request = new LoginUserRequest("nope", "x");
+
+        assertThatThrownBy(() -> subject.login(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Invalid credentials");
     }
@@ -74,7 +76,9 @@ class LoginUserImplTest {
         when(userRepo.findByEmail("bob@example.com")).thenReturn(Optional.of(stored));
         when(encoder.matches("wrong", "hashedpw")).thenReturn(false);
 
-        assertThatThrownBy(() -> subject.login(new LoginUserRequest("bob@example.com", "wrong")))
+        var request = new LoginUserRequest("bob@example.com", "wrong");
+
+        assertThatThrownBy(() -> subject.login(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Invalid credentials");
     }

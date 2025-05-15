@@ -3,13 +3,16 @@ package com.replan.business.mapper;
 
 import com.replan.domain.objects.User;
 import com.replan.domain.requests.CreateUserRequest;
-import com.replan.domain.requests.LoginUserRequest;
-import com.replan.persistance.dto.UserDTO;
+
 import com.replan.persistance.entity.UserEntity;
 
 import java.util.UUID;
 
 public class UserMapper {
+
+    private UserMapper() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     public static User toDomain(UserEntity entity) {
         if (entity == null) return null;
@@ -32,14 +35,6 @@ public class UserMapper {
         return entity;
     }
 
-    public static UserDTO toDTO(User user) {
-        if (user == null) return null;
-        return new UserDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getUsername()
-        );
-    }
 
     public static User fromCreateRequest(CreateUserRequest request) {
         if (request == null) return null;
@@ -51,13 +46,4 @@ public class UserMapper {
         );
     }
 
-    public static User fromLoginRequest(LoginUserRequest request) {
-        if (request == null) return null;
-        return new User(
-                null,
-                request.getEmail(),
-                null,
-                request.getPassword()
-        );
-    }
 }
