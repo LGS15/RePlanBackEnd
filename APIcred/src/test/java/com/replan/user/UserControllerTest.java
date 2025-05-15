@@ -182,7 +182,7 @@ public class UserControllerTest {
                 "new-user-token"
         );
 
-        // Mock createUser method using BDDMockito
+
         given(createUserUseCase.createUser(any(CreateUserRequest.class))).willReturn(response);
 
         // Act & Assert
