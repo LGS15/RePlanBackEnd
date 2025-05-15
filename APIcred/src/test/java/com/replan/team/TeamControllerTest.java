@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -71,21 +72,37 @@ public class TeamControllerTest {
 
     @BeforeEach
     void resetMocks() {
-        reset(teamRepository, teamMemberRepository);
+        reset(teamRepository, teamMemberRepository,userRepository);
     }
 
     @Test
     void testCreateTeamEndpoint() throws Exception {
-        // given
-        var request = new CreateTeamRequest("Alpha Squad", "League of Legends", "owner123");
+        String ownerId = UUID.randomUUID().toString();
+
+        var request = new CreateTeamRequest("Alpha Squad", "League of Legends", ownerId);
+
+        // Mock the user repository to return a user for the owner ID
+        var userEntity = new UserEntity();
+        userEntity.setId(ownerId);
+        userEntity.setUsername("testOwner");
+        userEntity.setEmail("owner@example.com");
+        when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
+
+        // Mock the team repository
         var entity = new TeamEntity();
         entity.setId("team123");
         entity.setTeamName("Alpha Squad");
         entity.setGameName("League of Legends");
-        entity.setOwnerId("owner123");
+        entity.setOwnerId(ownerId);
+        when(teamRepository.save(any(TeamEntity.class))).thenReturn(entity);
 
-        when(teamRepository.save(any(TeamEntity.class)))
-                .thenReturn(entity);
+        // Mock the team member repository to return for the owner
+        var teamMemberEntity = new TeamMemberEntity();
+        teamMemberEntity.setId("member123");
+        teamMemberEntity.setTeamId("team123");
+        teamMemberEntity.setUserId(ownerId);
+        teamMemberEntity.setRole(Role.OWNER);
+        when(teamMemberRepository.save(any(TeamMemberEntity.class))).thenReturn(teamMemberEntity);
 
         // when / then
         mockMvc.perform(post("/teams")
@@ -95,17 +112,17 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.teamId").value("team123"))
                 .andExpect(jsonPath("$.teamName").value("Alpha Squad"))
                 .andExpect(jsonPath("$.gameName").value("League of Legends"))
-                .andExpect(jsonPath("$.ownerId").value("owner123"));
+                .andExpect(jsonPath("$.ownerId").value(ownerId));
     }
 
     @Test
     void testAddTeamMemberEndpoint() throws Exception {
-        // given
-        var teamId = "team123";
-        var req = new AddTeamMemberRequest();
-        req.setEmail("user@example.com"); // Changed from userId to email but I might wanna change this back
-        req.setRole(Role.PLAYER);
+        String teamId = "team123";
+        String userId = UUID.randomUUID().toString();
 
+        var req = new AddTeamMemberRequest();
+        req.setEmail("user@example.com");
+        req.setRole(Role.PLAYER);
 
         var teamEntity = new TeamEntity();
         teamEntity.setId(teamId);
@@ -113,9 +130,8 @@ public class TeamControllerTest {
         when(teamRepository.findById(teamId))
                 .thenReturn(Optional.of(teamEntity));
 
-
         var userEntity = new UserEntity();
-        userEntity.setId("user456");
+        userEntity.setId(userId);
         userEntity.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com"))
                 .thenReturn(Optional.of(userEntity));
@@ -123,7 +139,7 @@ public class TeamControllerTest {
         var tmEntity = new TeamMemberEntity();
         tmEntity.setId("member123");
         tmEntity.setTeamId(teamId);
-        tmEntity.setUserId("user456");
+        tmEntity.setUserId(userId);
         tmEntity.setRole(Role.valueOf("PLAYER"));
 
         when(teamMemberRepository.save(any(TeamMemberEntity.class)))
@@ -136,13 +152,14 @@ public class TeamControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamMemberId").value("member123"))
                 .andExpect(jsonPath("$.teamId").value(teamId))
-                .andExpect(jsonPath("$.userId").value("user456"))
+                .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.role").value("PLAYER"));
     }
+
     @Test
     void testGetTeamsByOwnerEndpoint() throws Exception {
-        // given
-        var ownerId = "owner123";
+        String ownerId = UUID.randomUUID().toString();
+
         var entity = new TeamEntity();
         entity.setId("team123");
         entity.setTeamName("Alpha");
@@ -163,12 +180,13 @@ public class TeamControllerTest {
 
     @Test
     void testGetTeamMembersByTeamEndpoint() throws Exception {
-        // given
-        var teamId = "team123";
+        String teamId = "team123";
+        String userId = UUID.randomUUID().toString();
+
         var tm = new TeamMemberEntity();
         tm.setId("member123");
         tm.setTeamId(teamId);
-        tm.setUserId("user456");
+        tm.setUserId(userId);
         tm.setRole(Role.valueOf("PLAYER"));
 
         when(teamMemberRepository.findByTeamId(teamId))
@@ -179,7 +197,7 @@ public class TeamControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members[0].teamMemberId").value("member123"))
                 .andExpect(jsonPath("$.members[0].teamId").value(teamId))
-                .andExpect(jsonPath("$.members[0].userId").value("user456"))
+                .andExpect(jsonPath("$.members[0].userId").value(userId))
                 .andExpect(jsonPath("$.totalCount").value(1));
     }
 }

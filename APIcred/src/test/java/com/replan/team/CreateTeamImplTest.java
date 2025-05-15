@@ -47,26 +47,28 @@ public class CreateTeamImplTest {
 
     @Test
     void happyPath_shouldSaveAndReturnResponse() {
-        var req = new CreateTeamRequest("Alpha", "Chess", "owner123");
+        // Generate a valid UUID for owner
+        String ownerId = UUID.randomUUID().toString();
+        var req = new CreateTeamRequest("Alpha", "Chess", ownerId);
 
         // Mock the user repository to return the owner
         var userEntity = new UserEntity();
-        userEntity.setId("owner123");
-        when(userRepository.findById(UUID.fromString("owner123"))).thenReturn(Optional.of(userEntity));
+        userEntity.setId(ownerId);
+        when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
 
         // Mock the team repository
         var savedTeam = new TeamEntity();
         savedTeam.setId("team-uuid");
         savedTeam.setTeamName("Alpha");
         savedTeam.setGameName("Chess");
-        savedTeam.setOwnerId("owner123");
+        savedTeam.setOwnerId(ownerId);
         when(teamRepository.save(any(TeamEntity.class))).thenReturn(savedTeam);
 
         // Mock the team member repository
         var savedMember = new TeamMemberEntity();
         savedMember.setId("member-uuid");
         savedMember.setTeamId("team-uuid");
-        savedMember.setUserId("owner123");
+        savedMember.setUserId(ownerId);
         savedMember.setRole(Role.OWNER);
         when(teamMemberRepository.save(any(TeamMemberEntity.class))).thenReturn(savedMember);
 
@@ -77,13 +79,13 @@ public class CreateTeamImplTest {
         assertThat(resp.getTeamId()).isEqualTo("team-uuid");
         assertThat(resp.getTeamName()).isEqualTo("Alpha");
         assertThat(resp.getGameName()).isEqualTo("Chess");
-        assertThat(resp.getOwnerId()).isEqualTo("owner123");
+        assertThat(resp.getOwnerId()).isEqualTo(ownerId);
 
         // Verify team was saved
         verify(teamRepository).save(argThat(te ->
                 te.getTeamName().equals("Alpha") &&
                         te.getGameName().equals("Chess") &&
-                        te.getOwnerId().equals("owner123")
+                        te.getOwnerId().equals(ownerId)
         ));
 
         // Verify team member was created with OWNER role
@@ -92,13 +94,15 @@ public class CreateTeamImplTest {
 
         TeamMemberEntity capturedMember = memberCaptor.getValue();
         assertThat(capturedMember.getTeamId()).isEqualTo("team-uuid");
-        assertThat(capturedMember.getUserId()).isEqualTo("owner123");
+        assertThat(capturedMember.getUserId()).isEqualTo(ownerId);
         assertThat(capturedMember.getRole()).isEqualTo(Role.OWNER);
     }
 
     @Test
     void missingTeamName_shouldThrow() {
-        var req = new CreateTeamRequest("", "Chess", "owner123");
+        // Generate a valid UUID for owner
+        String ownerId = UUID.randomUUID().toString();
+        var req = new CreateTeamRequest("", "Chess", ownerId);
 
         assertThatThrownBy(() -> subject.createTeam(req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -107,7 +111,9 @@ public class CreateTeamImplTest {
 
     @Test
     void missingGameName_shouldThrow() {
-        var req = new CreateTeamRequest("Alpha", null, "owner123");
+        // Generate a valid UUID for owner
+        String ownerId = UUID.randomUUID().toString();
+        var req = new CreateTeamRequest("Alpha", null, ownerId);
 
         assertThatThrownBy(() -> subject.createTeam(req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -125,12 +131,13 @@ public class CreateTeamImplTest {
 
     @Test
     void nonExistentOwner_shouldThrow() {
-        var req = new CreateTeamRequest("Alpha", "Chess", "nonexistent");
-        when(userRepository.findById(UUID.fromString("nonexistent"))).thenReturn(Optional.empty());
+        // Generate a valid UUID for a non-existent owner
+        String nonExistentId = UUID.randomUUID().toString();
+        var req = new CreateTeamRequest("Alpha", "Chess", nonExistentId);
+        when(userRepository.findById(UUID.fromString(nonExistentId))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> subject.createTeam(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Owner does not exist");
     }
-
 }

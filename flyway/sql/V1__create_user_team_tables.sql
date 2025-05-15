@@ -21,3 +21,5 @@ CREATE TABLE TeamMember (
                             FOREIGN KEY (team_id) REFERENCES Team(id),
                             FOREIGN KEY (user_id) REFERENCES UserAccount(id)
 );
+
+ALTER TABLE TeamMember MODIFY COLUMN role ENUM('OWNER', 'PLAYER', 'COACH') NOT NULL;
