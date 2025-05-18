@@ -3,16 +3,17 @@ package com.replan.team;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.replan.TeamTestConfig;
 
-import com.replan.business.impl.teamMember.RemoveTeamMemberImpl;
+
+import com.replan.business.usecases.team.GetTeamsByUserUseCase;
 import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
 import com.replan.domain.objects.Role;
-import com.replan.domain.objects.Team;
-import com.replan.domain.objects.TeamMember;
+
 import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.requests.CreateTeamRequest;
 
 import com.replan.domain.requests.RemoveTeamMemberRequest;
 import com.replan.domain.responses.RemoveTeamMemberResponse;
+import com.replan.domain.responses.TeamResponse;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
 import com.replan.persistance.UserRepository;
@@ -28,17 +29,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -71,8 +68,12 @@ public class TeamControllerTest {
     @MockitoBean
     private RemoveTeamMemberUseCase removeTeamMemberUseCase;
 
+    @MockitoBean
+    private GetTeamsByUserUseCase getTeamsByUserUseCase;
+
     @Autowired
     private ObjectMapper objectMapper;
+
 
     @BeforeEach
     void resetMocks() {
@@ -240,5 +241,31 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$.teamId").value(teamId))
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.removed").value(true));
+    }
+
+    @Test
+    void testGetTeamMembersByUserEndpoint() throws Exception {
+        //Arange
+        String userId = "user123";
+        List< TeamResponse> teamResponses = Arrays.asList(
+                new TeamResponse("team1", "Team Alpha", "Chess", "owner1"),
+                new TeamResponse("team2", "Team Beta", "League of Legends", "owner2")
+        );
+
+
+        when(getTeamsByUserUseCase.getTeamsByUser(userId)).thenReturn(teamResponses);
+
+        // Act & Assert
+        mockMvc.perform(get("/teams/user/{userId}", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].teamId").value("team1"))
+                .andExpect(jsonPath("$[0].teamName").value("Team Alpha"))
+                .andExpect(jsonPath("$[0].gameName").value("Chess"))
+                .andExpect(jsonPath("$[0].ownerId").value("owner1"))
+                .andExpect(jsonPath("$[1].teamId").value("team2"))
+                .andExpect(jsonPath("$[1].teamName").value("Team Beta"))
+                .andExpect(jsonPath("$[1].gameName").value("League of Legends"))
+                .andExpect(jsonPath("$[1].ownerId").value("owner2"));
+
     }
 }

@@ -1,6 +1,7 @@
 package com.replan.controller;
 
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
+import com.replan.business.usecases.team.GetTeamsByUserUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.business.usecases.teamMember.GetTeamMembersByTeamUseCase;
 import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
@@ -31,6 +32,7 @@ public class TeamController {
     private final GetTeamsByOwnerUseCase getTeamsByOwnerUseCase;
     private final GetTeamMembersByTeamUseCase getTeamMembersByTeamUseCase;
     private final RemoveTeamMemberUseCase removeTeamMemberUseCase;
+    private final GetTeamsByUserUseCase getTeamsByUserUseCase;
 
 
     @PostMapping
@@ -69,6 +71,12 @@ public class TeamController {
     public ResponseEntity<RemoveTeamMemberResponse> removeTeamMember(@PathVariable String teamId, @PathVariable String userId ){
         RemoveTeamMemberRequest request= new RemoveTeamMemberRequest(teamId, userId);
         RemoveTeamMemberResponse response = removeTeamMemberUseCase.removeTeamMember(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<TeamResponse>> getTeamMembersByUserId(@PathVariable String userId){
+        List<TeamResponse> response = getTeamsByUserUseCase.getTeamsByUser(userId);
         return ResponseEntity.ok(response);
     }
 

@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface TeamRepository extends JpaRepository<TeamEntity, String> {
     List<TeamEntity> findByOwnerId(String ownerId);
+
 }
