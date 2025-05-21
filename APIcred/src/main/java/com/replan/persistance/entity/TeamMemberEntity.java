@@ -1,5 +1,6 @@
 package com.replan.persistance.entity;
 
+import com.replan.business.mapper.UuidToBytesConverter;
 import com.replan.domain.objects.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class TeamMemberEntity {
             name = "UUID" ,
             strategy = "org.hibernate.id.UUIDGenerator"
     )
+    @Convert(converter = UuidToBytesConverter.class)
     @Column(
             name = "id",
             updatable = false,
@@ -32,9 +34,11 @@ public class TeamMemberEntity {
     )
     private UUID id;
 
+    @Convert(converter = UuidToBytesConverter.class)
     @Column(name = "team_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID teamId;
 
+    @Convert(converter = UuidToBytesConverter.class)
     @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
 
