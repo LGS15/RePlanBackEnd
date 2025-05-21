@@ -44,54 +44,59 @@ class AddTeamMemberImplTest {
     @InjectMocks
     private AddTeamMemberImpl subject;
 
+    private static final UUID TEAM_ID = UUID.randomUUID();
+    private static final UUID USER_ID = UUID.randomUUID();
+    private static final UUID MEMBER_ID = UUID.randomUUID();
+    private static final UUID NONEXISTENT_TEAM_ID = UUID.randomUUID();
+
     @BeforeEach void setUp() { MockitoAnnotations.openMocks(this); }
 
     @Test
     void happyPath_shouldSaveAndReturnResponse() {
-        // team exists
+
         var teamEnt = new TeamEntity();
-        teamEnt.setId("t1");
-        when(teamRepository.findById("t1")).thenReturn(Optional.of(teamEnt));
+        teamEnt.setId(TEAM_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
 
         // user exists
         var userEnt = new UserEntity();
-        userEnt.setId(UUID.fromString("u1"));
+        userEnt.setId(USER_ID);
         userEnt.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
 
         // save in repo
         var me = new TeamMemberEntity();
-        me.setId("m1");
-        me.setTeamId("t1");
-        me.setUserId("u1");
+        me.setId(MEMBER_ID);
+        me.setTeamId(TEAM_ID);
+        me.setUserId(USER_ID);
         me.setRole(Role.valueOf("PLAYER"));
         when(tmRepo.save(any(TeamMemberEntity.class))).thenReturn(me);
 
         // request
         var req = new AddTeamMemberRequest();
-        req.setTeamId("t1");
-        req.setEmail("user@example.com"); // Changed from userId to email
+        req.setTeamId(TEAM_ID.toString());
+        req.setEmail("user@example.com");
         req.setRole(Role.PLAYER);
 
         AddTeamMemberResponse resp = subject.addTeamMember(req);
 
-        assertThat(resp.getTeamMemberId()).isEqualTo("m1");
-        assertThat(resp.getTeamId()).isEqualTo("t1");
-        assertThat(resp.getUserId()).isEqualTo("u1");
+        assertThat(resp.getTeamMemberId()).isEqualTo(MEMBER_ID.toString());
+        assertThat(resp.getTeamId()).isEqualTo(TEAM_ID.toString());
+        assertThat(resp.getUserId()).isEqualTo(USER_ID.toString());
         assertThat(resp.getRole()).isEqualTo(Role.PLAYER);
 
         verify(tmRepo).save(argThat(ent ->
-                ent.getTeamId().equals("t1")
-                        && ent.getUserId().equals("u1")
+                ent.getTeamId().equals(TEAM_ID)
+                        && ent.getUserId().equals(USER_ID)
                         && ent.getRole().equals(Role.valueOf("PLAYER"))
         ));
     }
 
     @Test
     void missingTeam_shouldThrow() {
-        when(teamRepository.findById("nx")).thenReturn(Optional.empty());
+        when(teamRepository.findById(NONEXISTENT_TEAM_ID)).thenReturn(Optional.empty());
         var req = new AddTeamMemberRequest();
-        req.setTeamId("nx");
+        req.setTeamId(NONEXISTENT_TEAM_ID.toString());
         assertThatThrownBy(() -> subject.addTeamMember(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team not found");
@@ -99,16 +104,16 @@ class AddTeamMemberImplTest {
 
     @Test
     void missingUser_shouldThrow() {
-        // team exists
+
         var teamEnt = new TeamEntity();
-        teamEnt.setId("t1");
-        when(teamRepository.findById("t1")).thenReturn(Optional.of(teamEnt));
+        teamEnt.setId(TEAM_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
 
         // user does not exist
         when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
 
         var req = new AddTeamMemberRequest();
-        req.setTeamId("t1");
+        req.setTeamId(TEAM_ID.toString());
         req.setEmail("nonexistent@example.com");
         req.setRole(Role.PLAYER);
 

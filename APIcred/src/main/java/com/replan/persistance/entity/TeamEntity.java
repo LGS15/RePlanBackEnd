@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "Team")
 @Data
@@ -23,7 +25,7 @@ public class TeamEntity {
             nullable = false,
             columnDefinition = "CHAR(36)"
     )
-    private String id;
+    private UUID id;
 
     @Column(name = "team_name", nullable = false)
     private String teamName;
@@ -31,6 +33,6 @@ public class TeamEntity {
     @Column(name = "game_name",nullable = false)
     private String gameName;
 
-    @Column(name = "owner_id", nullable = false)
-    private String ownerId;
+    @Column(name = "owner_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID ownerId;
 }

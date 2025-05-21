@@ -44,10 +44,19 @@ public class CreateTeamImpl  implements CreateTeamUseCase {
             throw new IllegalArgumentException("Owner id cannot be empty");
         }
 
-       Optional<UserEntity> ownerEntity = userRepository.findById(UUID.fromString(request.getOwnerId()));
-        if (ownerEntity.isEmpty()) {
-            throw new IllegalArgumentException("Owner does not exist");
-        }
+       UUID ownerUuid;
+       try {
+           ownerUuid = UUID.fromString(request.getOwnerId());
+       } catch (IllegalArgumentException e) {
+           throw new IllegalArgumentException("Invalid owner ID format");
+       }
+
+       Optional<UserEntity> ownerEntity = userRepository.findById(ownerUuid);
+       if (ownerEntity.isEmpty()) {
+
+           System.out.println("Owner not found with ID: " + ownerUuid);
+           throw new IllegalArgumentException("Owner does not exist");
+       }
 
 
         TeamEntity toSave = TeamMapper.toEntity(request);
@@ -55,7 +64,7 @@ public class CreateTeamImpl  implements CreateTeamUseCase {
 
         TeamMemberEntity ownerMember = new TeamMemberEntity();
         ownerMember.setTeamId(savedTeam.getId());
-        ownerMember.setUserId(request.getOwnerId());
+        ownerMember.setUserId(ownerUuid);
         ownerMember.setRole(Role.OWNER);
 
         teamMemberRepository.save(ownerMember);

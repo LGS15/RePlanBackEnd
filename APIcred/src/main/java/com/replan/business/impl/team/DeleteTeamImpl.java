@@ -34,7 +34,7 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
             throw new IllegalArgumentException("Team id cannot be empty");
         }
 
-        TeamEntity team = teamRepository.findById(request.getTeamId())
+        TeamEntity team = teamRepository.findById(UUID.fromString(request.getTeamId()))
                 .orElseThrow(()-> new IllegalArgumentException("Team not found"));
 
         UUID currentUserId = getCurrentUserId();
@@ -44,7 +44,7 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
 
         String teamName = team.getTeamName();
 
-        teamMemberRepository.deleteByTeamId(request.getTeamId());
+        teamMemberRepository.deleteByTeamId(UUID.fromString(request.getTeamId()));
         teamRepository.delete(team);
 
         return new DeleteTeamResponse(

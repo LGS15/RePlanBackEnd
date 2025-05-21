@@ -1,6 +1,7 @@
 package com.replan.business.impl.team;
 
 import java.util.List;
+import java.util.UUID;
 
 
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
@@ -22,7 +23,7 @@ public class GetTeamsByOwnerImpl implements GetTeamsByOwnerUseCase {
 
     @Override
     public List<TeamResponse> getTeamsByOwner(String ownerId) {
-        return teamRepository.findByOwnerId(ownerId).stream()
+        return teamRepository.findByOwnerId(UUID.fromString(ownerId)).stream()
                 .map(TeamMapper::toTeamResponse)
                 .toList();
     }

@@ -13,6 +13,8 @@ import com.replan.persistance.entity.TeamMemberEntity;
 import com.replan.persistance.entity.UserEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class AddTeamMemberImpl implements AddTeamMemberUseCase {
 
@@ -31,7 +33,7 @@ public class AddTeamMemberImpl implements AddTeamMemberUseCase {
     @Override
     public AddTeamMemberResponse addTeamMember(AddTeamMemberRequest request) {
         // Check if the team actually exists
-        TeamEntity team = teamRepository.findById(request.getTeamId())
+        TeamEntity team = teamRepository.findById(UUID.fromString(request.getTeamId()))
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
         UserEntity user = userRepository.findByEmail(request.getEmail())

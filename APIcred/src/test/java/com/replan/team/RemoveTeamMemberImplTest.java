@@ -43,6 +43,14 @@ public class RemoveTeamMemberImplTest {
     @InjectMocks
     private RemoveTeamMemberImpl subject;
 
+    private static final UUID TEAM_ID = UUID.randomUUID();
+    private static final UUID OWNER_ID = UUID.randomUUID();
+    private static final UUID MEMBER_ID = UUID.randomUUID();
+    private static final UUID MEMBER_USER_ID = UUID.randomUUID();
+    private static final UUID OTHER_USER_ID = UUID.randomUUID();
+    private static final UUID NON_EXISTENT_TEAM_ID = UUID.randomUUID();
+    private static final UUID NON_EXISTENT_USER_ID = UUID.randomUUID();
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -52,43 +60,37 @@ public class RemoveTeamMemberImplTest {
     @Test
     void ownerRemovingMember_shouldSucceed() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
-        String memberId = "member456";
-        String memberUserId = "user456";
-
-        // Mock team lookup
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_ID);
+        team.setOwnerId(OWNER_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(team));
 
         // Mock team member lookup
         TeamMemberEntity teamMember = new TeamMemberEntity();
-        teamMember.setId(memberId);
-        teamMember.setTeamId(teamId);
-        teamMember.setUserId(memberUserId);
+        teamMember.setId(MEMBER_ID);
+        teamMember.setTeamId(TEAM_ID);
+        teamMember.setUserId(MEMBER_USER_ID);
         teamMember.setRole(Role.PLAYER);
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId))
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, MEMBER_USER_ID))
                 .thenReturn(Optional.of(teamMember));
 
         // Mock authentication context
         UserEntity ownerUser = new UserEntity();
-        ownerUser.setId(UUID.fromString(ownerId));
+        ownerUser.setId(OWNER_ID);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(ownerUser);
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, memberUserId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(TEAM_ID.toString(), MEMBER_USER_ID.toString());
 
         // Act
         RemoveTeamMemberResponse response = subject.removeTeamMember(request);
 
         // Assert
         assertThat(response.isRemoved()).isTrue();
-        assertThat(response.getTeamMemberId()).isEqualTo(memberId);
-        assertThat(response.getTeamId()).isEqualTo(teamId);
-        assertThat(response.getUserId()).isEqualTo(memberUserId);
+        assertThat(UUID.fromString(response.getTeamMemberId())).isEqualTo(MEMBER_ID);
+        assertThat(UUID.fromString(response.getTeamId())).isEqualTo(TEAM_ID);
+        assertThat(UUID.fromString(response.getUserId())).isEqualTo(MEMBER_USER_ID);
 
         // Verify that member was deleted
         verify(teamMemberRepository).delete(teamMember);
@@ -97,34 +99,28 @@ public class RemoveTeamMemberImplTest {
     @Test
     void memberRemovingSelf_shouldSucceed() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
-        String memberId = "member456";
-        String memberUserId = "user456";
-
-        // Mock team lookup
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_ID);
+        team.setOwnerId(OWNER_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(team));
 
-        // Mock team member lookup
+
         TeamMemberEntity teamMember = new TeamMemberEntity();
-        teamMember.setId(memberId);
-        teamMember.setTeamId(teamId);
-        teamMember.setUserId(memberUserId);
+        teamMember.setId(MEMBER_ID);
+        teamMember.setTeamId(TEAM_ID);
+        teamMember.setUserId(MEMBER_USER_ID);
         teamMember.setRole(Role.PLAYER);
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId))
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, MEMBER_USER_ID))
                 .thenReturn(Optional.of(teamMember));
 
-        // Mock authentication context
+        // Authentication context
         UserEntity memberUser = new UserEntity();
-        memberUser.setId(UUID.fromString(memberUserId));
+        memberUser.setId(MEMBER_USER_ID);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(memberUser);
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, memberUserId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(TEAM_ID.toString(), MEMBER_USER_ID.toString());
 
         // Act
         RemoveTeamMemberResponse response = subject.removeTeamMember(request);
@@ -137,35 +133,27 @@ public class RemoveTeamMemberImplTest {
     @Test
     void nonOwnerRemovingOtherMember_shouldThrow() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
-        String memberId = "member456";
-        String memberUserId = "user456";
-        String otherUserId = "user789"; // Non-owner trying to remove someone else
-
-        // Mock team lookup
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_ID);
+        team.setOwnerId(OWNER_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(team));
 
-        // Mock team member lookup
         TeamMemberEntity teamMember = new TeamMemberEntity();
-        teamMember.setId(memberId);
-        teamMember.setTeamId(teamId);
-        teamMember.setUserId(memberUserId);
+        teamMember.setId(MEMBER_ID);
+        teamMember.setTeamId(TEAM_ID);
+        teamMember.setUserId(MEMBER_USER_ID);
         teamMember.setRole(Role.PLAYER);
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId))
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, MEMBER_USER_ID))
                 .thenReturn(Optional.of(teamMember));
 
         // Mock authentication context
         UserEntity otherUser = new UserEntity();
-        otherUser.setId(UUID.fromString(otherUserId));
+        otherUser.setId(OTHER_USER_ID);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(otherUser);
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, memberUserId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(TEAM_ID.toString(), MEMBER_USER_ID.toString());
 
         // Act & Assert
         assertThatThrownBy(() -> subject.removeTeamMember(request))
@@ -179,13 +167,10 @@ public class RemoveTeamMemberImplTest {
     @Test
     void nonExistentTeam_shouldThrow() {
         // Arrange
-        String teamId = "nonExistentTeam";
-        String userId = "user123";
-
-        when(teamRepository.findById(teamId)).thenReturn(Optional.empty());
+        when(teamRepository.findById(NON_EXISTENT_TEAM_ID)).thenReturn(Optional.empty());
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, userId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(NON_EXISTENT_TEAM_ID.toString(), MEMBER_USER_ID.toString());
 
         // Act & Assert
         assertThatThrownBy(() -> subject.removeTeamMember(request))
@@ -196,22 +181,16 @@ public class RemoveTeamMemberImplTest {
     @Test
     void nonExistentTeamMember_shouldThrow() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
-        String nonExistentUserId = "nonExistentUser";
-
-        // Mock team lookup
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_ID);
+        team.setOwnerId(OWNER_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(team));
 
-        // Mock team member lookup to return empty
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, nonExistentUserId))
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, NON_EXISTENT_USER_ID))
                 .thenReturn(Optional.empty());
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, nonExistentUserId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(TEAM_ID.toString(), NON_EXISTENT_USER_ID.toString());
 
         // Act & Assert
         assertThatThrownBy(() -> subject.removeTeamMember(request))
@@ -222,28 +201,23 @@ public class RemoveTeamMemberImplTest {
     @Test
     void notAuthenticated_shouldThrow() {
         // Arrange
-        String teamId = "team123";
-        String userId = "user123";
-
-        // Mock team lookup
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId("owner123");
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_ID);
+        team.setOwnerId(OWNER_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(team));
 
-        // Mock team member lookup
         TeamMemberEntity teamMember = new TeamMemberEntity();
-        teamMember.setId("member123");
-        teamMember.setTeamId(teamId);
-        teamMember.setUserId(userId);
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, userId))
+        teamMember.setId(MEMBER_ID);
+        teamMember.setTeamId(TEAM_ID);
+        teamMember.setUserId(MEMBER_USER_ID);
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, MEMBER_USER_ID))
                 .thenReturn(Optional.of(teamMember));
 
         // Mock authentication context to be null
         when(securityContext.getAuthentication()).thenReturn(null);
 
         // Create request
-        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(teamId, userId);
+        RemoveTeamMemberRequest request = new RemoveTeamMemberRequest(TEAM_ID.toString(), MEMBER_USER_ID.toString());
 
         // Act & Assert
         assertThatThrownBy(() -> subject.removeTeamMember(request))

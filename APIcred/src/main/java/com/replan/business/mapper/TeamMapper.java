@@ -5,6 +5,8 @@ import com.replan.domain.responses.CreateTeamResponse;
 import com.replan.domain.responses.TeamResponse;
 import com.replan.persistance.entity.TeamEntity;
 
+import java.util.UUID;
+
 public class TeamMapper {
 
     private TeamMapper() {
@@ -15,25 +17,25 @@ public class TeamMapper {
         TeamEntity e = new TeamEntity();
         e.setTeamName(req.getTeamName());
         e.setGameName(req.getGameName());
-        e.setOwnerId(req.getOwnerId());
+        e.setOwnerId(UUID.fromString(req.getOwnerId()));
         return e;
     }
 
     public static CreateTeamResponse toCreateResponse(TeamEntity e) {
         return new CreateTeamResponse(
-                e.getId(),
+                e.getId().toString(),
                 e.getTeamName(),
                 e.getGameName(),
-                e.getOwnerId()
+                e.getOwnerId().toString()
         );
     }
 
     public static TeamResponse toTeamResponse(TeamEntity e) {
         return new TeamResponse(
-                e.getId(),
+                e.getId().toString(),
                 e.getTeamName(),
                 e.getGameName(),
-                e.getOwnerId()
+                e.getOwnerId().toString()
         );
     }
 }

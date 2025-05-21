@@ -67,7 +67,8 @@ class JwtAuthenticationFilterTest {
 
         // Mock user retrieval
         UserEntity user = new UserEntity();
-        user.setId(UUID.fromString("user123"));
+        UUID uuid = UUID.randomUUID();
+        user.setId(uuid);
         user.setEmail(email);
         user.setUsername("testUser");
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));

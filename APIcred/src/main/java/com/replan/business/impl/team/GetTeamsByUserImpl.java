@@ -9,6 +9,7 @@ import com.replan.persistance.entity.TeamMemberEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Service
@@ -24,7 +25,7 @@ public class GetTeamsByUserImpl implements GetTeamsByUserUseCase {
 
     @Override
     public List<TeamResponse> getTeamsByUser(String userId) {
-        List<String>teamIds= teamMemberRepository.findByUserId(userId).stream()
+        List<UUID> teamIds= teamMemberRepository.findByUserId(UUID.fromString(userId)).stream()
                 .map(TeamMemberEntity::getTeamId)
                 .toList();
 

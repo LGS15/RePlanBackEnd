@@ -9,6 +9,7 @@ import com.replan.persistance.TeamMemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +24,7 @@ public class GetTeamMembersByTeamImpl implements GetTeamMembersByTeamUseCase {
     @Override
     public GetTeamMembersByTeamResponse getTeamMembers(GetTeamMembersByTeamRequest request) {
        List<AddTeamMemberResponse> members = teamMemberRepository
-               .findByTeamId(request.getTeamId())
+               .findByTeamId(UUID.fromString(request.getTeamId()))
                .stream()
                .map(TeamMemberMapper::toResponse)
                .collect(Collectors.toList());

@@ -1,17 +1,17 @@
 CREATE TABLE Video (
-                       id VARCHAR(36) PRIMARY KEY,
-                       team_id VARCHAR(36) NOT NULL,
-                       title VARCHAR(100) NOT NULL,
+                       id BINARY(16) PRIMARY KEY,
+                       team_id BINARY(16) NOT NULL,
+                       url VARCHAR(255) NOT NULL,
                        uploaded_at DATETIME NOT NULL,
-                       uploaded_by VARCHAR(36) NOT NULL,
+                       uploaded_by BINARY(16) NOT NULL,
                        FOREIGN KEY (team_id) REFERENCES Team(id),
                        FOREIGN KEY (uploaded_by) REFERENCES UserAccount(id)
 );
 
 CREATE TABLE Note (
-                      id VARCHAR(36) PRIMARY KEY,
-                      video_id VARCHAR(36) NOT NULL,
-                      author_id VARCHAR(36) NOT NULL,
+                      id BINARY(16) PRIMARY KEY,
+                      video_id BINARY(16) NOT NULL,
+                      author_id BINARY(16) NOT NULL,
                       timestamp BIGINT NOT NULL,
                       content TEXT NOT NULL,
                       created_at DATETIME NOT NULL,
@@ -21,9 +21,9 @@ CREATE TABLE Note (
 );
 
 CREATE TABLE Availability (
-                              id VARCHAR(36) PRIMARY KEY,
-                              user_id VARCHAR(36) NOT NULL,
-                              team_id VARCHAR(36) NOT NULL,
+                              id BINARY(16) PRIMARY KEY,
+                              user_id BINARY(16) NOT NULL,
+                              team_id BINARY(16) NOT NULL,
                               day_of_week INT NOT NULL,
                               start_time TIME NOT NULL,
                               end_time TIME NOT NULL,

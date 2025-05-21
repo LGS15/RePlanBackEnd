@@ -40,6 +40,9 @@ public class CreateTeamImplTest {
     @Mock
     private UserRepository userRepository;
 
+    private static final UUID TEAM_UUID = UUID.randomUUID();
+    private static final UUID MEMBER_UUID = UUID.randomUUID();
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -47,28 +50,28 @@ public class CreateTeamImplTest {
 
     @Test
     void happyPath_shouldSaveAndReturnResponse() {
-        // Generate a valid UUID for owner
-        String ownerId = UUID.randomUUID().toString();
+        UUID ownerUUID = UUID.randomUUID();
+        String ownerId = ownerUUID.toString();
         var req = new CreateTeamRequest("Alpha", "Chess", ownerId);
 
         // Mock the user repository to return the owner
         var userEntity = new UserEntity();
-        userEntity.setId(UUID.fromString(ownerId));
-        when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
+        userEntity.setId(ownerUUID);
+        when(userRepository.findById(ownerUUID)).thenReturn(Optional.of(userEntity));
 
         // Mock the team repository
         var savedTeam = new TeamEntity();
-        savedTeam.setId("team-uuid");
+        savedTeam.setId(TEAM_UUID);
         savedTeam.setTeamName("Alpha");
         savedTeam.setGameName("Chess");
-        savedTeam.setOwnerId(ownerId);
+        savedTeam.setOwnerId(ownerUUID);
         when(teamRepository.save(any(TeamEntity.class))).thenReturn(savedTeam);
 
         // Mock the team member repository
         var savedMember = new TeamMemberEntity();
-        savedMember.setId("member-uuid");
-        savedMember.setTeamId("team-uuid");
-        savedMember.setUserId(ownerId);
+        savedMember.setId(MEMBER_UUID);
+        savedMember.setTeamId(TEAM_UUID);
+        savedMember.setUserId(ownerUUID);
         savedMember.setRole(Role.OWNER);
         when(teamMemberRepository.save(any(TeamMemberEntity.class))).thenReturn(savedMember);
 
@@ -76,7 +79,7 @@ public class CreateTeamImplTest {
         CreateTeamResponse resp = subject.createTeam(req);
 
         // Assert
-        assertThat(resp.getTeamId()).isEqualTo("team-uuid");
+        assertThat(resp.getTeamId()).isEqualTo(TEAM_UUID.toString());
         assertThat(resp.getTeamName()).isEqualTo("Alpha");
         assertThat(resp.getGameName()).isEqualTo("Chess");
         assertThat(resp.getOwnerId()).isEqualTo(ownerId);
@@ -85,7 +88,7 @@ public class CreateTeamImplTest {
         verify(teamRepository).save(argThat(te ->
                 te.getTeamName().equals("Alpha") &&
                         te.getGameName().equals("Chess") &&
-                        te.getOwnerId().equals(ownerId)
+                        te.getOwnerId().equals(ownerUUID)
         ));
 
         // Verify team member was created with OWNER role
@@ -93,8 +96,8 @@ public class CreateTeamImplTest {
         verify(teamMemberRepository).save(memberCaptor.capture());
 
         TeamMemberEntity capturedMember = memberCaptor.getValue();
-        assertThat(capturedMember.getTeamId()).isEqualTo("team-uuid");
-        assertThat(capturedMember.getUserId()).isEqualTo(ownerId);
+        assertThat(capturedMember.getTeamId()).isEqualTo(TEAM_UUID);
+        assertThat(capturedMember.getUserId()).isEqualTo(ownerUUID);
         assertThat(capturedMember.getRole()).isEqualTo(Role.OWNER);
     }
 
@@ -132,9 +135,10 @@ public class CreateTeamImplTest {
     @Test
     void nonExistentOwner_shouldThrow() {
         // Generate a valid UUID for a non-existent owner
-        String nonExistentId = UUID.randomUUID().toString();
+        UUID nonExistentUUID = UUID.randomUUID();
+        String nonExistentId = nonExistentUUID.toString();
         var req = new CreateTeamRequest("Alpha", "Chess", nonExistentId);
-        when(userRepository.findById(UUID.fromString(nonExistentId))).thenReturn(Optional.empty());
+        when(userRepository.findById(nonExistentUUID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> subject.createTeam(req))
                 .isInstanceOf(IllegalArgumentException.class)

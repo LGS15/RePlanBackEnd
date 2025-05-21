@@ -6,6 +6,8 @@ import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.responses.AddTeamMemberResponse;
 import com.replan.persistance.entity.TeamMemberEntity;
 
+import java.util.UUID;
+
 public class TeamMemberMapper {
 
     private TeamMemberMapper() {
@@ -15,8 +17,8 @@ public class TeamMemberMapper {
     public static TeamMemberEntity toEntity(AddTeamMemberRequest d, String userId) {
         TeamMemberEntity e = new TeamMemberEntity();
 
-        e.setTeamId(d.getTeamId());
-        e.setUserId(userId);
+        e.setTeamId(UUID.fromString(d.getTeamId()));
+        e.setUserId(UUID.fromString(userId));
         e.setRole(d.getRole());
         return e;
     }
@@ -24,9 +26,9 @@ public class TeamMemberMapper {
     public static AddTeamMemberResponse toResponse(TeamMemberEntity e) {
         if (e == null) return null;
         AddTeamMemberResponse m = new AddTeamMemberResponse(
-        e.getId(),
-        e.getTeamId(),
-        e.getUserId(),
+        e.getId().toString(),
+        e.getTeamId().toString(),
+        e.getUserId().toString(),
         e.getRole()
         );
         return m;

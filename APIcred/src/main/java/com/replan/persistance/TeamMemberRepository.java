@@ -9,14 +9,15 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, String> {
+public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UUID> {
 
-    List<TeamMemberEntity> findByTeamId(String teamId);
-    Optional<TeamMemberEntity> findByTeamIdAndUserId(String teamId, String userId);
-    List<TeamMemberEntity> findByUserId(String userId);
+    List<TeamMemberEntity> findByTeamId(UUID teamId);
+    Optional<TeamMemberEntity> findByTeamIdAndUserId(UUID teamId, UUID userId);
+    List<TeamMemberEntity> findByUserId(UUID userId);
 
     @Modifying
     @Query("DELETE FROM TeamMemberEntity tm WHERE tm.teamId = :teamId")
-    void deleteByTeamId(@Param("teamId") String teamId);
+    void deleteByTeamId(@Param("teamId") UUID teamId);
 }

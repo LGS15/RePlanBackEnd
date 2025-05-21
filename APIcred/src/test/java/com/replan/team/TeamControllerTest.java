@@ -83,6 +83,13 @@ public class TeamControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private static final UUID TEAM_UUID = UUID.randomUUID();
+    private static final UUID MEMBER_UUID = UUID.randomUUID();
+    private static final UUID OWNER_UUID = UUID.randomUUID();
+    private static final UUID USER_UUID = UUID.randomUUID();
+    private static final UUID NON_EXISTENT_TEAM_UUID = UUID.randomUUID();
+    private static final UUID TEAM_UUID_2 = UUID.randomUUID();
+
 
     @BeforeEach
     void resetMocks() {
@@ -91,30 +98,29 @@ public class TeamControllerTest {
 
     @Test
     void testCreateTeamEndpoint() throws Exception {
-        String ownerId = UUID.randomUUID().toString();
+        String ownerId = OWNER_UUID.toString();
 
         var request = new CreateTeamRequest("Alpha Squad", "League of Legends", ownerId);
 
-        // Mock the user repository to return a user for the owner ID
         var userEntity = new UserEntity();
-        userEntity.setId(UUID.fromString(ownerId));
+        userEntity.setId(OWNER_UUID);
         userEntity.setUsername("testOwner");
         userEntity.setEmail("owner@example.com");
-        when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
+        when(userRepository.findById(OWNER_UUID)).thenReturn(Optional.of(userEntity));
 
         // Mock the team repository
         var entity = new TeamEntity();
-        entity.setId("team123");
+        entity.setId(TEAM_UUID);
         entity.setTeamName("Alpha Squad");
         entity.setGameName("League of Legends");
-        entity.setOwnerId(ownerId);
+        entity.setOwnerId(OWNER_UUID);
         when(teamRepository.save(any(TeamEntity.class))).thenReturn(entity);
 
         // Mock the team member repository to return for the owner
         var teamMemberEntity = new TeamMemberEntity();
-        teamMemberEntity.setId("member123");
-        teamMemberEntity.setTeamId("team123");
-        teamMemberEntity.setUserId(ownerId);
+        teamMemberEntity.setId(MEMBER_UUID);
+        teamMemberEntity.setTeamId(TEAM_UUID);
+        teamMemberEntity.setUserId(OWNER_UUID);
         teamMemberEntity.setRole(Role.OWNER);
         when(teamMemberRepository.save(any(TeamMemberEntity.class))).thenReturn(teamMemberEntity);
 
@@ -123,7 +129,7 @@ public class TeamControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.teamId").value("team123"))
+                .andExpect(jsonPath("$.teamId").value(TEAM_UUID.toString()))
                 .andExpect(jsonPath("$.teamName").value("Alpha Squad"))
                 .andExpect(jsonPath("$.gameName").value("League of Legends"))
                 .andExpect(jsonPath("$.ownerId").value(ownerId));
@@ -131,29 +137,29 @@ public class TeamControllerTest {
 
     @Test
     void testAddTeamMemberEndpoint() throws Exception {
-        String teamId = "team123";
-        String userId = UUID.randomUUID().toString();
+        String teamId = TEAM_UUID.toString();
+        String userId = USER_UUID.toString();
 
         var req = new AddTeamMemberRequest();
         req.setEmail("user@example.com");
         req.setRole(Role.PLAYER);
 
         var teamEntity = new TeamEntity();
-        teamEntity.setId(teamId);
+        teamEntity.setId(TEAM_UUID);
 
-        when(teamRepository.findById(teamId))
+        when(teamRepository.findById(TEAM_UUID))
                 .thenReturn(Optional.of(teamEntity));
 
         var userEntity = new UserEntity();
-        userEntity.setId(UUID.fromString(userId));
+        userEntity.setId(USER_UUID);
         userEntity.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com"))
                 .thenReturn(Optional.of(userEntity));
 
         var tmEntity = new TeamMemberEntity();
-        tmEntity.setId("member123");
-        tmEntity.setTeamId(teamId);
-        tmEntity.setUserId(userId);
+        tmEntity.setId(MEMBER_UUID);
+        tmEntity.setTeamId(TEAM_UUID);
+        tmEntity.setUserId(USER_UUID);
         tmEntity.setRole(Role.valueOf("PLAYER"));
 
         when(teamMemberRepository.save(any(TeamMemberEntity.class)))
@@ -164,7 +170,7 @@ public class TeamControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.teamMemberId").value("member123"))
+                .andExpect(jsonPath("$.teamMemberId").value(MEMBER_UUID.toString()))
                 .andExpect(jsonPath("$.teamId").value(teamId))
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.role").value("PLAYER"));
@@ -172,21 +178,21 @@ public class TeamControllerTest {
 
     @Test
     void testGetTeamsByOwnerEndpoint() throws Exception {
-        String ownerId = UUID.randomUUID().toString();
+        String ownerId = OWNER_UUID.toString();
 
         var entity = new TeamEntity();
-        entity.setId("team123");
+        entity.setId(TEAM_UUID);
         entity.setTeamName("Alpha");
         entity.setGameName("LOL");
-        entity.setOwnerId(ownerId);
+        entity.setOwnerId(OWNER_UUID);
 
-        when(teamRepository.findByOwnerId(ownerId))
+        when(teamRepository.findByOwnerId(OWNER_UUID))
                 .thenReturn(List.of(entity));
 
         // when / then
         mockMvc.perform(get("/teams/owner/{ownerId}", ownerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].teamId").value("team123"))
+                .andExpect(jsonPath("$[0].teamId").value(TEAM_UUID.toString()))
                 .andExpect(jsonPath("$[0].teamName").value("Alpha"))
                 .andExpect(jsonPath("$[0].gameName").value("LOL"))
                 .andExpect(jsonPath("$[0].ownerId").value(ownerId));
@@ -194,22 +200,22 @@ public class TeamControllerTest {
 
     @Test
     void testGetTeamMembersByTeamEndpoint() throws Exception {
-        String teamId = "team123";
-        String userId = UUID.randomUUID().toString();
+        String teamId = TEAM_UUID.toString();
+        String userId = USER_UUID.toString();
 
         var tm = new TeamMemberEntity();
-        tm.setId("member123");
-        tm.setTeamId(teamId);
-        tm.setUserId(userId);
+        tm.setId(MEMBER_UUID);
+        tm.setTeamId(TEAM_UUID);
+        tm.setUserId(USER_UUID);
         tm.setRole(Role.valueOf("PLAYER"));
 
-        when(teamMemberRepository.findByTeamId(teamId))
+        when(teamMemberRepository.findByTeamId(TEAM_UUID))
                 .thenReturn(List.of(tm));
 
         // when / then
         mockMvc.perform(get("/teams/{teamId}/members", teamId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.members[0].teamMemberId").value("member123"))
+                .andExpect(jsonPath("$.members[0].teamMemberId").value(MEMBER_UUID.toString()))
                 .andExpect(jsonPath("$.members[0].teamId").value(teamId))
                 .andExpect(jsonPath("$.members[0].userId").value(userId))
                 .andExpect(jsonPath("$.totalCount").value(1));
@@ -218,25 +224,25 @@ public class TeamControllerTest {
     @Test
     void testRemoveTeamMemberEndpoint() throws Exception {
         // given
-        var teamId = "team123";
-        String userId = UUID.randomUUID().toString();
-        String ownerId = UUID.randomUUID().toString();
+        String teamId = TEAM_UUID.toString();
+        String userId = USER_UUID.toString();
+        String ownerId = OWNER_UUID.toString();
 
         var team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        team.setId(TEAM_UUID);
+        team.setOwnerId(OWNER_UUID);
+        when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(team));
 
         var teamMember = new TeamMemberEntity();
-        teamMember.setId("member123");
-        teamMember.setTeamId(teamId);
-        teamMember.setUserId(userId);
+        teamMember.setId(MEMBER_UUID);
+        teamMember.setTeamId(TEAM_UUID);
+        teamMember.setUserId(USER_UUID);
         teamMember.setRole(Role.PLAYER);
-        when(teamMemberRepository.findByTeamIdAndUserId(teamId, userId))
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_UUID, USER_UUID))
                 .thenReturn(Optional.of(teamMember));
 
         RemoveTeamMemberResponse expectedResponse = new RemoveTeamMemberResponse(
-                "member123", teamId, userId, Role.PLAYER, true);
+                MEMBER_UUID.toString(), teamId, userId, Role.PLAYER, true);
 
         when(removeTeamMemberUseCase.removeTeamMember(any(RemoveTeamMemberRequest.class)))
                 .thenReturn(expectedResponse);
@@ -245,7 +251,7 @@ public class TeamControllerTest {
         mockMvc.perform(delete("/teams/{teamId}/members/{userId}", teamId, userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.teamMemberId").value("member123"))
+                .andExpect(jsonPath("$.teamMemberId").value(MEMBER_UUID.toString()))
                 .andExpect(jsonPath("$.teamId").value(teamId))
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.removed").value(true));
@@ -279,8 +285,8 @@ public class TeamControllerTest {
 
     @Test
     void testDeleteTeamEndpoint() throws Exception {
-        // Arrange
-        String teamId = "team123";
+        //Arrange
+        String teamId = TEAM_UUID.toString();
 
         DeleteTeamResponse expectedResponse = new DeleteTeamResponse(
                 teamId,
@@ -310,7 +316,7 @@ public class TeamControllerTest {
     @Test
     void testDeleteTeamEndpoint_teamNotFound() throws Exception {
         // Arrange
-        String nonExistentTeamId = "nonExistentTeam";
+        String nonExistentTeamId = NON_EXISTENT_TEAM_UUID.toString();
 
         when(deleteTeamUseCase.deleteTeam(any(DeleteTeamRequest.class)))
                 .thenThrow(new IllegalArgumentException("Team not found"));
@@ -326,7 +332,7 @@ public class TeamControllerTest {
     @Test
     void testDeleteTeamEndpoint_notTeamOwner() throws Exception {
         // Arrange
-        String teamId = "team456";
+        String teamId = TEAM_UUID_2.toString();
 
         when(deleteTeamUseCase.deleteTeam(any(DeleteTeamRequest.class)))
                 .thenThrow(new AccessDeniedException("Only the team owner can delete the team"));

@@ -41,6 +41,11 @@ class DeleteTeamImplTest {
     @InjectMocks
     private DeleteTeamImpl deleteTeamImpl;
 
+    private static final UUID TEAM_UUID = UUID.randomUUID();
+    private static final UUID OWNER_UUID = UUID.randomUUID();
+    private static final UUID NON_OWNER_UUID = UUID.randomUUID();
+    private static final UUID NON_EXISTENT_TEAM_UUID = UUID.randomUUID();
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -50,23 +55,20 @@ class DeleteTeamImplTest {
     @Test
     void deleteTeam_happyPath_ownerDeletingTeam() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
+        String teamId = TEAM_UUID.toString();
+        String ownerId = OWNER_UUID.toString();
         String teamName = "Test Team";
 
-
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
+        team.setId(TEAM_UUID);
         team.setTeamName(teamName);
         team.setGameName("Chess");
-        team.setOwnerId(ownerId);
-
+        team.setOwnerId(OWNER_UUID);
 
         UserEntity ownerUser = new UserEntity();
-        ownerUser.setId(UUID.fromString(ownerId));
+        ownerUser.setId(OWNER_UUID);
 
-
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(team));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(ownerUser);
 
@@ -81,28 +83,23 @@ class DeleteTeamImplTest {
         assertThat(response.isDeleted()).isTrue();
 
         // Verify repository
-        verify(teamMemberRepository).deleteByTeamId(teamId);
+        verify(teamMemberRepository).deleteByTeamId(TEAM_UUID);
         verify(teamRepository).delete(team);
     }
 
     @Test
     void deleteTeam_nonOwnerDeletingTeam_shouldThrowAccessDeniedException() {
         // Arrange
-        String teamId = "team123";
-        String ownerId = "owner123";
-        String nonOwnerId = "user456";
-
+        String teamId = TEAM_UUID.toString();
 
         TeamEntity team = new TeamEntity();
-        team.setId(teamId);
-        team.setOwnerId(ownerId);
-
+        team.setId(TEAM_UUID);
+        team.setOwnerId(OWNER_UUID);
 
         UserEntity nonOwnerUser = new UserEntity();
-        nonOwnerUser.setId(UUID.fromString(nonOwnerId));
+        nonOwnerUser.setId(NON_OWNER_UUID);
 
-
-        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(team));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(nonOwnerUser);
 
@@ -113,18 +110,17 @@ class DeleteTeamImplTest {
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("You do not have permission to delete this team");
 
-
-        verify(teamMemberRepository, never()).deleteByTeamId(anyString());
+        // Verify no deletion occurred - use specific UUID instead of anyString()
+        verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));
     }
 
     @Test
     void deleteTeam_teamDoesNotExist_shouldThrowIllegalArgumentException() {
         // Arrange
-        String nonExistentTeamId = "nonExistentTeam";
+        String nonExistentTeamId = NON_EXISTENT_TEAM_UUID.toString();
 
-
-        when(teamRepository.findById(nonExistentTeamId)).thenReturn(Optional.empty());
+        when(teamRepository.findById(NON_EXISTENT_TEAM_UUID)).thenReturn(Optional.empty());
 
         DeleteTeamRequest request = new DeleteTeamRequest(nonExistentTeamId);
 
@@ -133,8 +129,8 @@ class DeleteTeamImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team not found");
 
-        // Verify no deletion occurred
-        verify(teamMemberRepository, never()).deleteByTeamId(anyString());
+        // Verify no deletion occurred - use specific UUID or proper matchers
+        verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));
     }
 
@@ -148,9 +144,9 @@ class DeleteTeamImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team id cannot be empty");
 
-        // Verify no repository calls were made
-        verify(teamRepository, never()).findById(anyString());
-        verify(teamMemberRepository, never()).deleteByTeamId(anyString());
+        // Remove the UUID.fromString calls which cause the issues
+        verify(teamRepository, never()).findById(any(UUID.class));
+        verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));
     }
 

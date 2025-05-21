@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -24,30 +25,38 @@ class GetTeamMembersByTeamImplTest {
     @InjectMocks
     private GetTeamMembersByTeamImpl subject;
 
+    private static final UUID TEAM_ID = UUID.randomUUID();
+    private static final UUID MEMBER_ID = UUID.randomUUID();
+    private static final UUID USER_ID = UUID.randomUUID();
+    private static final UUID NONEXISTENT_TEAM_ID = UUID.randomUUID();
+
     @BeforeEach
     void setUp() { MockitoAnnotations.openMocks(this); }
 
     @Test
     void whenFound_shouldMapAndCount() {
         var e = new TeamMemberEntity();
-        e.setId("m1"); e.setTeamId("t1"); e.setUserId("u1"); e.setRole(Role.COACH);
+        e.setId(MEMBER_ID);
+        e.setTeamId(TEAM_ID);
+        e.setUserId(USER_ID);
+        e.setRole(Role.COACH);
 
-        when(tmRepo.findByTeamId("t1")).thenReturn(List.of(e));
+        when(tmRepo.findByTeamId(TEAM_ID)).thenReturn(List.of(e));
 
-        var req = new GetTeamMembersByTeamRequest("t1");
+        var req = new GetTeamMembersByTeamRequest(TEAM_ID.toString());
         GetTeamMembersByTeamResponse resp = subject.getTeamMembers(req);
 
         assertThat(resp.getMembers()).hasSize(1);
         var out = resp.getMembers().get(0);
-        assertThat(out.getTeamMemberId()).isEqualTo("m1");
+        assertThat(out.getTeamMemberId()).isEqualTo(MEMBER_ID.toString());
         assertThat(out.getRole()).isEqualTo(Role.COACH);
         assertThat(resp.getTotalCount()).isEqualTo(1);
     }
 
     @Test
     void whenNoneFound_shouldBeEmpty() {
-        when(tmRepo.findByTeamId("x")).thenReturn(List.of());
-        var resp = subject.getTeamMembers(new GetTeamMembersByTeamRequest("x"));
+        when(tmRepo.findByTeamId(NONEXISTENT_TEAM_ID)).thenReturn(List.of());
+        var resp = subject.getTeamMembers(new GetTeamMembersByTeamRequest(NONEXISTENT_TEAM_ID.toString()));
         assertThat(resp.getMembers()).isEmpty();
         assertThat(resp.getTotalCount()).isZero();
     }

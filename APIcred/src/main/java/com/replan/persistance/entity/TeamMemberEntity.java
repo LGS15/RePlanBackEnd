@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "TeamMember",
 uniqueConstraints = {
@@ -26,15 +28,16 @@ public class TeamMemberEntity {
             name = "id",
             updatable = false,
             nullable = false,
-            columnDefinition = "CHAR(36)"
+            columnDefinition = "BINARY(16)"
     )
-    private String id;
+    private UUID id;
 
-    @Column(name = "team_id", nullable = false, columnDefinition = "CHAR(36)")
-    private String teamId;
+    @Column(name = "team_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID teamId;
 
-    @Column(name = "user_id", nullable = false, columnDefinition ="CHAR(36)" )
-    private String userId;
+    @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID userId;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name="role", nullable = false)
