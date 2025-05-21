@@ -6,6 +6,7 @@ import com.replan.domain.objects.User;
 import com.replan.domain.requests.CreateUserRequest;
 import com.replan.domain.responses.CreateUserResponse;
 import com.replan.persistance.UserRepository;
+import com.replan.persistance.entity.UserEntity;
 import com.replan.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,23 +28,20 @@ public class CreateUserImpl implements CreateUserUseCase {
     @Transactional
     public CreateUserResponse createUser(CreateUserRequest request) {
 
-        User user = UserMapper.fromCreateRequest(request);
+        UserEntity entity = UserMapper.toEntity(
+                UserMapper.fromCreateRequest(request)
+        );
 
-        user.setId(UUID.randomUUID());
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
+        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
+        UserEntity saved = userRepository.save(entity);
 
-        userRepository.save(UserMapper.toEntity(user));
-
-
-        String token = jwtUtil.generateToken(user.getEmail());
-
+        String token = jwtUtil.generateToken(saved.getEmail());
 
         return new CreateUserResponse(
-                user.getId().toString(),
-                user.getUsername(),
-                user.getEmail(),
+                saved.getId().toString(),
+                saved.getUsername(),
+                saved.getEmail(),
                 token
         );
     }

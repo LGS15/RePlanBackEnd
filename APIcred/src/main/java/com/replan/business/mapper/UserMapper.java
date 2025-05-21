@@ -28,6 +28,9 @@ public class UserMapper {
         if (user == null) return null;
         UserEntity entity = new UserEntity();
 
+        if (user.getId() != null) {
+            entity.setId(user.getId());
+        }
 
         entity.setEmail(user.getEmail());
         entity.setUsername(user.getUsername());
