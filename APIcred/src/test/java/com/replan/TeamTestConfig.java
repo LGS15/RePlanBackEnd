@@ -1,12 +1,14 @@
 package com.replan;
 
 import com.replan.business.impl.team.CreateTeamImpl;
+import com.replan.business.impl.team.DeleteTeamImpl;
 import com.replan.business.impl.team.GetTeamsByOwnerImpl;
 import com.replan.business.impl.team.GetTeamsByUserImpl;
 import com.replan.business.impl.teamMember.AddTeamMemberImpl;
 import com.replan.business.impl.teamMember.GetTeamMembersByTeamImpl;
 import com.replan.business.impl.teamMember.RemoveTeamMemberImpl;
 import com.replan.business.usecases.team.CreateTeamUseCase;
+import com.replan.business.usecases.team.DeleteTeamUseCase;
 import com.replan.business.usecases.team.GetTeamsByOwnerUseCase;
 import com.replan.business.usecases.team.GetTeamsByUserUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
@@ -43,6 +45,11 @@ public class TeamTestConfig {
     public CreateTeamUseCase createTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
         return new CreateTeamImpl(teamRepository, teamMemberRepository, userRepository);
     }
+
+    @Bean
+    public DeleteTeamUseCase deleteTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository){
+        return new DeleteTeamImpl(teamRepository, teamMemberRepository);
+    };
 
     @Bean
     public RemoveTeamMemberUseCase removeTeamMemberUseCase(TeamMemberRepository teamMemberRepository, TeamRepository teamRepository) {

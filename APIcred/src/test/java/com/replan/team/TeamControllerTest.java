@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.replan.TeamTestConfig;
 
 
+import com.replan.business.usecases.team.DeleteTeamUseCase;
 import com.replan.business.usecases.team.GetTeamsByUserUseCase;
 import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
 import com.replan.domain.objects.Role;
@@ -11,7 +12,9 @@ import com.replan.domain.objects.Role;
 import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.requests.CreateTeamRequest;
 
+import com.replan.domain.requests.DeleteTeamRequest;
 import com.replan.domain.requests.RemoveTeamMemberRequest;
+import com.replan.domain.responses.DeleteTeamResponse;
 import com.replan.domain.responses.RemoveTeamMemberResponse;
 import com.replan.domain.responses.TeamResponse;
 import com.replan.persistance.TeamMemberRepository;
@@ -22,6 +25,7 @@ import com.replan.persistance.entity.TeamMemberEntity;
 import com.replan.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
@@ -30,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -37,6 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -70,6 +76,9 @@ public class TeamControllerTest {
 
     @MockitoBean
     private GetTeamsByUserUseCase getTeamsByUserUseCase;
+
+    @MockitoBean
+    private DeleteTeamUseCase deleteTeamUseCase;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -226,7 +235,6 @@ public class TeamControllerTest {
         when(teamMemberRepository.findByTeamIdAndUserId(teamId, userId))
                 .thenReturn(Optional.of(teamMember));
 
-        // Mock the response from the use case to avoid the authentication check
         RemoveTeamMemberResponse expectedResponse = new RemoveTeamMemberResponse(
                 "member123", teamId, userId, Role.PLAYER, true);
 
@@ -267,5 +275,67 @@ public class TeamControllerTest {
                 .andExpect(jsonPath("$[1].gameName").value("League of Legends"))
                 .andExpect(jsonPath("$[1].ownerId").value("owner2"));
 
+    }
+
+    @Test
+    void testDeleteTeamEndpoint() throws Exception {
+        // Arrange
+        String teamId = "team123";
+
+        DeleteTeamResponse expectedResponse = new DeleteTeamResponse(
+                teamId,
+                "Team Alpha",
+                true,
+                "Team successfully deleted"
+        );
+
+        when(deleteTeamUseCase.deleteTeam(any(DeleteTeamRequest.class)))
+                .thenReturn(expectedResponse);
+
+        // Act & Assert
+        mockMvc.perform(delete("/teams/{teamId}", teamId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.teamId").value(teamId))
+                .andExpect(jsonPath("$.teamName").value("Team Alpha"))
+                .andExpect(jsonPath("$.deleted").value(true))
+                .andExpect(jsonPath("$.message").value("Team successfully deleted"));
+
+        // Verify that the use case was called with the correct team ID
+        ArgumentCaptor<DeleteTeamRequest> requestCaptor = ArgumentCaptor.forClass(DeleteTeamRequest.class);
+        verify(deleteTeamUseCase).deleteTeam(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().getTeamId()).isEqualTo(teamId);
+    }
+
+    @Test
+    void testDeleteTeamEndpoint_teamNotFound() throws Exception {
+        // Arrange
+        String nonExistentTeamId = "nonExistentTeam";
+
+        when(deleteTeamUseCase.deleteTeam(any(DeleteTeamRequest.class)))
+                .thenThrow(new IllegalArgumentException("Team not found"));
+
+        // Act & Assert
+        mockMvc.perform(delete("/teams/{teamId}", nonExistentTeamId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Team not found"))
+                .andExpect(jsonPath("$.error").value("Bad Request"));
+    }
+
+    @Test
+    void testDeleteTeamEndpoint_notTeamOwner() throws Exception {
+        // Arrange
+        String teamId = "team456";
+
+        when(deleteTeamUseCase.deleteTeam(any(DeleteTeamRequest.class)))
+                .thenThrow(new AccessDeniedException("Only the team owner can delete the team"));
+
+        // Act & Assert
+        mockMvc.perform(delete("/teams/{teamId}", teamId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Only the team owner can delete the team"))
+                .andExpect(jsonPath("$.error").value("Forbidden"));
     }
 }
