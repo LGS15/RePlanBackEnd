@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -66,7 +67,7 @@ class JwtAuthenticationFilterTest {
 
         // Mock user retrieval
         UserEntity user = new UserEntity();
-        user.setId("user123");
+        user.setId(UUID.fromString("user123"));
         user.setEmail(email);
         user.setUsername("testUser");
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));

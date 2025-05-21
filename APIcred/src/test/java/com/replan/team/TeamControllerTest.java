@@ -97,7 +97,7 @@ public class TeamControllerTest {
 
         // Mock the user repository to return a user for the owner ID
         var userEntity = new UserEntity();
-        userEntity.setId(ownerId);
+        userEntity.setId(UUID.fromString(ownerId));
         userEntity.setUsername("testOwner");
         userEntity.setEmail("owner@example.com");
         when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
@@ -145,7 +145,7 @@ public class TeamControllerTest {
                 .thenReturn(Optional.of(teamEntity));
 
         var userEntity = new UserEntity();
-        userEntity.setId(userId);
+        userEntity.setId(UUID.fromString(userId));
         userEntity.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com"))
                 .thenReturn(Optional.of(userEntity));

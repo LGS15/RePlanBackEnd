@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +55,7 @@ class AddTeamMemberImplTest {
 
         // user exists
         var userEnt = new UserEntity();
-        userEnt.setId("u1");
+        userEnt.setId(UUID.fromString("u1"));
         userEnt.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
 

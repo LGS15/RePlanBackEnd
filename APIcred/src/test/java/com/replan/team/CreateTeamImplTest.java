@@ -53,7 +53,7 @@ public class CreateTeamImplTest {
 
         // Mock the user repository to return the owner
         var userEntity = new UserEntity();
-        userEntity.setId(ownerId);
+        userEntity.setId(UUID.fromString(ownerId));
         when(userRepository.findById(UUID.fromString(ownerId))).thenReturn(Optional.of(userEntity));
 
         // Mock the team repository

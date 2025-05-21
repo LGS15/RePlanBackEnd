@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class DeleteTeamImpl implements DeleteTeamUseCase {
 
@@ -35,7 +37,7 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
         TeamEntity team = teamRepository.findById(request.getTeamId())
                 .orElseThrow(()-> new IllegalArgumentException("Team not found"));
 
-        String currentUserId = getCurrentUserId();
+        UUID currentUserId = getCurrentUserId();
         if (!team.getOwnerId().equals(currentUserId)){
             throw new AccessDeniedException("You do not have permission to delete this team");
         }
@@ -53,7 +55,7 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
         );
     };
 
-    private String getCurrentUserId() {
+    private UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
             return ((UserEntity) authentication.getPrincipal()).getId();

@@ -37,7 +37,7 @@ public class AddTeamMemberImpl implements AddTeamMemberUseCase {
         UserEntity user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User with email " + request.getEmail() + " not found"));
         
-        TeamMemberEntity teamMember = TeamMemberMapper.toEntity(request,user.getId());
+        TeamMemberEntity teamMember = TeamMemberMapper.toEntity(request, String.valueOf(user.getId()));
 
         TeamMemberEntity saved = teamMemberRepository.save(teamMember);
 

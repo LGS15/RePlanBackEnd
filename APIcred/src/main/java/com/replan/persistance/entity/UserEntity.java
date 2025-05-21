@@ -20,13 +20,8 @@ public class UserEntity {
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator"
     )
-    @Column(
-            name = "id",
-            updatable = false,
-            nullable = false,
-            columnDefinition = "CHAR(36)"
-    )
-    private String id;
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String email;

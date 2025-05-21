@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
@@ -62,7 +63,7 @@ class DeleteTeamImplTest {
 
 
         UserEntity ownerUser = new UserEntity();
-        ownerUser.setId(ownerId);
+        ownerUser.setId(UUID.fromString(ownerId));
 
 
         when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
@@ -98,7 +99,7 @@ class DeleteTeamImplTest {
 
 
         UserEntity nonOwnerUser = new UserEntity();
-        nonOwnerUser.setId(nonOwnerId);
+        nonOwnerUser.setId(UUID.fromString(nonOwnerId));
 
 
         when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));

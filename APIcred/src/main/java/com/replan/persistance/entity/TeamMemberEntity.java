@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
-@Table(name = "TeamMember")
+@Table(name = "TeamMember",
+uniqueConstraints = {
+@UniqueConstraint(columnNames = {"team_id", "user_id"})
+    })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

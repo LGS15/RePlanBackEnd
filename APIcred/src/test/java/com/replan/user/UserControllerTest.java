@@ -127,9 +127,9 @@ public class UserControllerTest {
         // Arrange
         String validToken = "valid.jwt.token";
 
-
+        UUID generatedUUID = UUID.randomUUID();
         UserEntity user = new UserEntity();
-        user.setId("user123");
+        user.setId(generatedUUID);
         user.setUsername("testuser");
         user.setEmail("test@example.com");
 
@@ -143,7 +143,7 @@ public class UserControllerTest {
         mockMvc.perform(post("/users/refresh-token")
                         .header("Authorization", "Bearer " + validToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value("user123"))
+                .andExpect(jsonPath("$.userId").value(generatedUUID.toString()))
                 .andExpect(jsonPath("$.username").value("testuser"))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.token").value("new.jwt.token"));

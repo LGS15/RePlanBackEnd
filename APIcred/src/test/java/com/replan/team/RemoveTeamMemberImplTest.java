@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -73,7 +74,7 @@ public class RemoveTeamMemberImplTest {
 
         // Mock authentication context
         UserEntity ownerUser = new UserEntity();
-        ownerUser.setId(ownerId);
+        ownerUser.setId(UUID.fromString(ownerId));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(ownerUser);
 
@@ -118,7 +119,7 @@ public class RemoveTeamMemberImplTest {
 
         // Mock authentication context
         UserEntity memberUser = new UserEntity();
-        memberUser.setId(memberUserId);
+        memberUser.setId(UUID.fromString(memberUserId));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(memberUser);
 
@@ -159,7 +160,7 @@ public class RemoveTeamMemberImplTest {
 
         // Mock authentication context
         UserEntity otherUser = new UserEntity();
-        otherUser.setId(otherUserId);
+        otherUser.setId(UUID.fromString(otherUserId));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(otherUser);
 

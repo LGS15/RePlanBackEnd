@@ -53,7 +53,7 @@ public class RemoveTeamMemberImpl implements RemoveTeamMemberUseCase {
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
-            return ((UserEntity) authentication.getPrincipal()).getId();
+            return String.valueOf(((UserEntity) authentication.getPrincipal()).getId());
         }
         throw new AccessDeniedException("User not authenticated");
     }

@@ -38,7 +38,7 @@ class LoginUserImplTest {
         // arrange
         String fakeId = UUID.randomUUID().toString();
         var stored = new UserEntity();
-        stored.setId(fakeId);
+        stored.setId(UUID.fromString(fakeId));
         stored.setEmail("bob@example.com");
         stored.setUsername("bob");
         stored.setPassword("hashedpw");

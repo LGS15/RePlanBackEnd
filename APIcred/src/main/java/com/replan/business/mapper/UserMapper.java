@@ -17,7 +17,7 @@ public class UserMapper {
     public static User toDomain(UserEntity entity) {
         if (entity == null) return null;
         return new User(
-                UUID.fromString(entity.getId()),
+                entity.getId(),
                 entity.getEmail(),
                 entity.getUsername(),
                 entity.getPassword()
