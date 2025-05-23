@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.mockito.*;
 import com.replan.security.JwtUtil;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -33,17 +35,25 @@ class CreateUserImplTest {
         var req = new CreateUserRequest("alice@example.com", "alice", "plainpw");
         when(encoder.encode("plainpw")).thenReturn("hashedpw");
         when(jwtUtil.generateToken("alice@example.com")).thenReturn("tok123");
-        // echo back when saved
-        when(userRepo.save(any(UserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UUID generatedId = UUID.randomUUID();
+        when(userRepo.save(any(UserEntity.class))).thenAnswer(inv -> {
+            UserEntity savedEntity = new UserEntity();
+            UserEntity inputEntity = inv.getArgument(0);
+            savedEntity.setId(generatedId);
+            savedEntity.setEmail(inputEntity.getEmail());
+            savedEntity.setUsername(inputEntity.getUsername());
+            savedEntity.setPassword(inputEntity.getPassword());
+            return savedEntity;
+        });
 
         CreateUserResponse resp = subject.createUser(req);
 
         assertThat(resp.getEmail()).isEqualTo("alice@example.com");
         assertThat(resp.getUsername()).isEqualTo("alice");
         assertThat(resp.getToken()).isEqualTo("tok123");
-        // id should be non-null UUID string
-        assertThat(resp.getUserId()).matches("[0-9a-fA-F\\-]{36}");
-        // ensure that we saved a UserEntity with hashed password
+        assertThat(resp.getUserId()).isEqualTo(generatedId.toString());
+
         verify(userRepo).save(argThat(ent ->
                 ent.getPassword().equals("hashedpw")
                         && ent.getEmail().equals("alice@example.com")
@@ -51,3 +61,4 @@ class CreateUserImplTest {
         ));
     }
 }
+

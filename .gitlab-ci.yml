@@ -78,14 +78,14 @@ migrate-database:
       variables:
         MYSQL_ROOT_PASSWORD: "root"
         MYSQL_DATABASE: "team_platform"
+  before_script:
+    - cp -r flyway/sql /flyway/
   script:
     - timeout 300 bash -c 'until mysqladmin ping -h mysql -u root -proot; do echo "Waiting for MySQL..."; sleep 5; done'
     - flyway migrate
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
-  volumes:
-    - ./flyway/sql:/flyway/sql
 
 
 docker-build:
