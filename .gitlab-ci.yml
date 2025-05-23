@@ -41,7 +41,7 @@ sonar:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
-    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
+    SONAR_TOKEN: "sqp_d09089c97e9a84947e6d0ff08aa7bd5cf6d91606"
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
