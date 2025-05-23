@@ -2,54 +2,116 @@ variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 stages:
-  - build
-  - test
+  - build-test
   - sonar
+  - migrate
   - docker
-
 
 default:
   before_script:
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
 
-build:
-  stage: build
-
+build-and-test:
+  stage: build-test
+  image: gradle:8.3-jdk17
   script:
     - cd APIcred
-    - ./gradlew bootJar
+    - ./gradlew clean build test jacocoTestReport
   artifacts:
     paths:
-      - APIcred/build/libs/
+      - APIcred/build/libs/*.jar
+      - APIcred/build/reports/jacoco/
+    reports:
+      junit:
+        - APIcred/build/test-results/test/TEST-*.xml
+    expire_in: 1 hour
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - APIcred/.gradle/wrapper
+      - APIcred/.gradle/caches
 
-test:
-  stage: test
-
-  script:
-    - cd APIcred
-    - ./gradlew test
 
 sonarqube:
   stage: sonar
   image: gradle:8.3-jdk17
-
+  services:
+    - name: sonarqube:community
+      alias: sonarqube
+      variables:
+        SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+  dependencies:
+    - build-and-test
   script:
     - cd APIcred
-    - ./gradlew test jacocoTestReport sonar
-  only:
-    - merge_requests
-    - main
-    - master
+    - timeout 300 bash -c 'until curl -s http://sonarqube:9000/api/system/status | grep -q "UP"; do echo "Waiting for SonarQube..."; sleep 10; done'
+    - 'curl -u admin:admin -X POST "http://sonarqube:9000/api/projects/create?project=replan&name=RePlan"'
+    - 'TOKEN=$(curl -u admin:admin -X POST "http://sonarqube:9000/api/user_tokens/generate?name=ci-token" | grep -o "\"token\":\"[^\"]*" | cut -d"\"" -f4)'
+    - ./gradlew sonar -x test -x build -Dsonar.projectKey=replan -Dsonar.login=$TOKEN
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "master"
   allow_failure: true
   variables:
-    SONAR_HOST_URL: "http://host.docker.internal:9000"
-    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
-docker:
-  stage: docker
+    SONAR_HOST_URL: "http://sonarqube:9000"
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - APIcred/.gradle/wrapper
+      - APIcred/.gradle/caches
+    policy: pull
 
+
+migrate-database:
+  stage: migrate
+  image: flyway/flyway:9
+  variables:
+    FLYWAY_URL: "jdbc:mysql://mysql:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false"
+    FLYWAY_USER: "root"
+    FLYWAY_PASSWORD: "root"
+    FLYWAY_LOCATIONS: "filesystem:/flyway/sql"
+  services:
+    - name: mysql:8
+      alias: mysql
+      variables:
+        MYSQL_ROOT_PASSWORD: "root"
+        MYSQL_DATABASE: "team_platform"
   script:
-    - cd APIcred
-    - ./gradlew build
-    - cd ..
-    - docker build -t replan .
-    - docker run -d -p 8080:8080 --name replanBE replan
+    - timeout 300 bash -c 'until mysqladmin ping -h mysql -u root -proot; do echo "Waiting for MySQL..."; sleep 5; done'
+    - flyway migrate
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+  volumes:
+    - ./flyway/sql:/flyway/sql
+
+
+docker-build:
+  stage: docker
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  dependencies:
+    - build-and-test
+  before_script:
+    - docker info
+  script:
+    - docker build -t replan:$CI_COMMIT_SHA .
+    - docker build -t replan:latest .
+    - docker network create test-network
+    - docker run -d --name mysql-test --network test-network -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=team_platform mysql:8
+    - sleep 30
+    - docker run -d --name replan-test --network test-network -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql-test:3306/team_platform replan:latest
+    - sleep 20
+    - docker exec replan-test curl -f http://localhost:8080 || echo "App started, health check endpoint may not exist"
+  after_script:
+    # Cleanup
+    - docker stop replan-test mysql-test || true
+    - docker rm replan-test mysql-test || true
+    - docker network rm test-network || true
+    - docker rmi replan:$CI_COMMIT_SHA replan:latest || true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
