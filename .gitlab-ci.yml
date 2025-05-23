@@ -4,8 +4,8 @@ variables:
 stages:
   - build-test
   - sonar
-  - migrate
   - docker
+
 
 build-and-test:
   stage: build-test
@@ -18,11 +18,7 @@ build-and-test:
     paths:
       - APIcred/build/libs/*.jar
       - APIcred/build/reports/jacoco/
-    reports:
-      junit:
-        - APIcred/build/test-results/test/TEST-*.xml
     expire_in: 1 hour
-  coverage: '/Total.*?([0-9]{1,3})%/'
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
@@ -30,7 +26,7 @@ build-and-test:
       - APIcred/.gradle/caches
 
 
-sonarqube:
+sonar:
   stage: sonar
   dependencies:
     - build-and-test
@@ -38,13 +34,11 @@ sonarqube:
     - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
     - cd APIcred
-    - try { Invoke-WebRequest -Uri "http://localhost:9000/api/system/status" -TimeoutSec 5 } catch { Write-Host "SonarQube not accessible at localhost:9000 - make sure docker compose is running"; exit 1 }
     - .\gradlew.bat sonar -x test -x build
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "master"
-  allow_failure: true
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
@@ -54,21 +48,9 @@ sonarqube:
       - APIcred/.gradle/wrapper
       - APIcred/.gradle/caches
     policy: pull
-
-migrate-database:
-  stage: migrate
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
-  script:
-    - docker ps --filter "name=dev-db" --format "table {{.Names}}\t{{.Status}}" | findstr "dev-db"
-    - if ($LASTEXITCODE -ne 0) { Write-Host "Database container not running - make sure docker-compose up is running"; exit 1 }
-    - docker run --rm --network sem3-backend_default -v ${PWD}/flyway/sql:/flyway/sql flyway/flyway:9 -url=jdbc:mysql://dev-db:3306/team_platform?allowPublicKeyRetrieval=true -user=root -password=root -locations=filesystem:/flyway/sql migrate
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
   allow_failure: true
 
-#
+
 docker-build:
   stage: docker
   dependencies:
@@ -77,13 +59,10 @@ docker-build:
     - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
     - docker build -t replan .
-    - docker run -d -p 8081:8080 --name replanCI replan
-    - Start-Sleep -Seconds 15
-    - try { Invoke-WebRequest -Uri "http://localhost:8081" -TimeoutSec 10 } catch { Write-Host "App may still be starting, continuing..." }
-    - docker stop replanCI
-    - docker rm replanCI
-  after_script:
-    - docker rmi replan 2>$null
+    - docker run -d -p 8080:8080 --name replanBE replan
+    - Start-Sleep -Seconds 10
+    - docker stop replanBE
+    - docker rm replanBE
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
