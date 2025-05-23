@@ -1,15 +1,13 @@
 package com.replan.domain.requests;
 
-import com.replan.domain.objects.Role;
 import lombok.Data;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddTeamMemberRequest {
+public class GetTeamMembersByTeamRequest {
     private String teamId;
-    private String email;
-    private Role role;
+
 }
