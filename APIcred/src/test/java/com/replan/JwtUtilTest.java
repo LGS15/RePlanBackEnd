@@ -79,7 +79,7 @@ class JwtUtilTest {
         String token = jwtUtil.generateToken(email);
 
         // "Corrupt" the token by changing the last character
-        String invalidToken = token.substring(0, token.length() - 1) + (token.charAt(token.length() - 1) == 'a' ? 'b' : 'a');
+        String invalidToken = token + "X";
 
         // Act
         boolean isValid = jwtUtil.validateToken(invalidToken);
