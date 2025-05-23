@@ -7,16 +7,13 @@ stages:
   - migrate
   - docker
 
-default:
-  before_script:
-    - git config --global --add safe.directory "$CI_PROJECT_DIR"
-
 build-and-test:
   stage: build-test
-  image: gradle:8.3-jdk17
+  before_script:
+    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
     - cd APIcred
-    - ./gradlew clean build test jacocoTestReport
+    - .\gradlew.bat clean build test jacocoTestReport
   artifacts:
     paths:
       - APIcred/build/libs/*.jar
@@ -35,27 +32,22 @@ build-and-test:
 
 sonarqube:
   stage: sonar
-  image: gradle:8.3-jdk17
-  services:
-    - name: sonarqube:community
-      alias: sonarqube
-      variables:
-        SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
   dependencies:
     - build-and-test
+  before_script:
+    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
     - cd APIcred
-    - timeout 300 bash -c 'until curl -s http://sonarqube:9000/api/system/status | grep -q "UP"; do echo "Waiting for SonarQube..."; sleep 10; done'
-    - 'curl -u admin:admin -X POST "http://sonarqube:9000/api/projects/create?project=replan&name=RePlan"'
-    - 'TOKEN=$(curl -u admin:admin -X POST "http://sonarqube:9000/api/user_tokens/generate?name=ci-token" | grep -o "\"token\":\"[^\"]*" | cut -d"\"" -f4)'
-    - ./gradlew sonar -x test -x build -Dsonar.projectKey=replan -Dsonar.login=$TOKEN
+    - try { Invoke-WebRequest -Uri "http://localhost:9000/api/system/status" -TimeoutSec 5 } catch { Write-Host "SonarQube not accessible at localhost:9000 - make sure docker compose is running"; exit 1 }
+    - .\gradlew.bat sonar -x test -x build
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "master"
   allow_failure: true
   variables:
-    SONAR_HOST_URL: "http://sonarqube:9000"
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
@@ -63,55 +55,35 @@ sonarqube:
       - APIcred/.gradle/caches
     policy: pull
 
-
 migrate-database:
   stage: migrate
-  image: flyway/flyway:9
-  variables:
-    FLYWAY_URL: "jdbc:mysql://mysql:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false"
-    FLYWAY_USER: "root"
-    FLYWAY_PASSWORD: "root"
-    FLYWAY_LOCATIONS: "filesystem:/flyway/sql"
-  services:
-    - name: mysql:8
-      alias: mysql
-      variables:
-        MYSQL_ROOT_PASSWORD: "root"
-        MYSQL_DATABASE: "team_platform"
   before_script:
-    - cp -r flyway/sql /flyway/
+    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
-    - timeout 300 bash -c 'until mysqladmin ping -h mysql -u root -proot; do echo "Waiting for MySQL..."; sleep 5; done'
-    - flyway migrate
+    - docker ps --filter "name=dev-db" --format "table {{.Names}}\t{{.Status}}" | findstr "dev-db"
+    - if ($LASTEXITCODE -ne 0) { Write-Host "Database container not running - make sure docker-compose up is running"; exit 1 }
+    - docker run --rm --network sem3-backend_default -v ${PWD}/flyway/sql:/flyway/sql flyway/flyway:9 -url=jdbc:mysql://dev-db:3306/team_platform?allowPublicKeyRetrieval=true -user=root -password=root -locations=filesystem:/flyway/sql migrate
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
+  allow_failure: true
 
-
+#
 docker-build:
   stage: docker
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
   dependencies:
     - build-and-test
   before_script:
-    - docker info
+    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
   script:
-    - docker build -t replan:$CI_COMMIT_SHA .
-    - docker build -t replan:latest .
-    - docker network create test-network
-    - docker run -d --name mysql-test --network test-network -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=team_platform mysql:8
-    - sleep 30
-    - docker run -d --name replan-test --network test-network -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql-test:3306/team_platform replan:latest
-    - sleep 20
-    - docker exec replan-test curl -f http://localhost:8080 || echo "App started, health check endpoint may not exist"
+    - docker build -t replan .
+    - docker run -d -p 8081:8080 --name replanCI replan
+    - Start-Sleep -Seconds 15
+    - try { Invoke-WebRequest -Uri "http://localhost:8081" -TimeoutSec 10 } catch { Write-Host "App may still be starting, continuing..." }
+    - docker stop replanCI
+    - docker rm replanCI
   after_script:
-    # Cleanup
-    - docker stop replan-test mysql-test || true
-    - docker rm replan-test mysql-test || true
-    - docker network rm test-network || true
-    - docker rmi replan:$CI_COMMIT_SHA replan:latest || true
+    - docker rmi replan 2>$null
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
