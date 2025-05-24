@@ -52,23 +52,15 @@ sonar:
 
 docker-build:
   stage: docker
-  image: docker:latest
-  services:
-    - docker:dind
   dependencies:
     - build-and-test
   before_script:
     - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/replan:$CI_COMMIT_SHORT_SHA .
-    - docker build -t $CI_REGISTRY_IMAGE/replan:latest .
-    - docker push $CI_REGISTRY_IMAGE/replan:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/replan:latest
-    - docker run -d -p 8080:8080 --name replanBE-test $CI_REGISTRY_IMAGE/replan:latest
-    - sleep 10
-    - docker stop replanBE-test
-    - docker rm replanBE-test
+    - docker build -t replan .
+    - docker stop replan-app 2>$null || echo "No existing container to stop"
+    - docker rm replan-app 2>$null || echo "No existing container to remove"
+    - docker run -d -p 8080:8080 --name replan-app replan
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
