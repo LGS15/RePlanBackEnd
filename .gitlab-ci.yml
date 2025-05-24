@@ -1,11 +1,12 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
 
 stages:
   - build-test
   - sonar
   - docker
-
 
 build-and-test:
   stage: build-test
@@ -25,7 +26,6 @@ build-and-test:
       - APIcred/.gradle/wrapper
       - APIcred/.gradle/caches
 
-
 sonar:
   stage: sonar
   dependencies:
@@ -41,7 +41,7 @@ sonar:
     - if: $CI_COMMIT_BRANCH == "master"
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
-    SONAR_TOKEN: "sqp_d09089c97e9a84947e6d0ff08aa7bd5cf6d91606"
+    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
@@ -50,19 +50,25 @@ sonar:
     policy: pull
   allow_failure: true
 
-
 docker-build:
   stage: docker
+  image: docker:latest
+  services:
+    - docker:dind
   dependencies:
     - build-and-test
   before_script:
     - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t replan .
-    - docker run -d -p 8080:8080 --name replanBE replan
-    - Start-Sleep -Seconds 10
-    - docker stop replanBE
-    - docker rm replanBE
+    - docker build -t $CI_REGISTRY_IMAGE/replan:$CI_COMMIT_SHORT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE/replan:latest .
+    - docker push $CI_REGISTRY_IMAGE/replan:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/replan:latest
+    - docker run -d -p 8080:8080 --name replanBE-test $CI_REGISTRY_IMAGE/replan:latest
+    - sleep 10
+    - docker stop replanBE-test
+    - docker rm replanBE-test
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
