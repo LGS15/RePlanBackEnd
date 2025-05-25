@@ -138,7 +138,6 @@ public class TeamControllerTest {
     @Test
     void testAddTeamMemberEndpoint() throws Exception {
         String teamId = TEAM_UUID.toString();
-        String userId = USER_UUID.toString();
 
         var req = new AddTeamMemberRequest();
         req.setEmail("user@example.com");
@@ -146,24 +145,24 @@ public class TeamControllerTest {
 
         var teamEntity = new TeamEntity();
         teamEntity.setId(TEAM_UUID);
-
-        when(teamRepository.findById(TEAM_UUID))
-                .thenReturn(Optional.of(teamEntity));
+        when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(teamEntity));
 
         var userEntity = new UserEntity();
         userEntity.setId(USER_UUID);
         userEntity.setEmail("user@example.com");
-        when(userRepository.findByEmail("user@example.com"))
-                .thenReturn(Optional.of(userEntity));
+        userEntity.setUsername("testuser");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEntity));
+
+        // Mock that user is not already a member
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_UUID, USER_UUID))
+                .thenReturn(Optional.empty());
 
         var tmEntity = new TeamMemberEntity();
         tmEntity.setId(MEMBER_UUID);
         tmEntity.setTeamId(TEAM_UUID);
         tmEntity.setUserId(USER_UUID);
-        tmEntity.setRole(Role.valueOf("PLAYER"));
-
-        when(teamMemberRepository.save(any(TeamMemberEntity.class)))
-                .thenReturn(tmEntity);
+        tmEntity.setRole(Role.PLAYER);
+        when(teamMemberRepository.save(any(TeamMemberEntity.class))).thenReturn(tmEntity);
 
         // when / then
         mockMvc.perform(post("/teams/{teamId}/members", teamId)
@@ -172,8 +171,40 @@ public class TeamControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.teamMemberId").value(MEMBER_UUID.toString()))
                 .andExpect(jsonPath("$.teamId").value(teamId))
-                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.userId").value(USER_UUID.toString()))
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value("user@example.com"))
                 .andExpect(jsonPath("$.role").value("PLAYER"));
+    }
+
+    @Test
+    void testAddTeamMemberEndpoint_duplicateMember() throws Exception {
+        String teamId = TEAM_UUID.toString();
+
+        var req = new AddTeamMemberRequest();
+        req.setEmail("user@example.com");
+        req.setRole(Role.PLAYER);
+
+        var teamEntity = new TeamEntity();
+        teamEntity.setId(TEAM_UUID);
+        when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(teamEntity));
+
+        var userEntity = new UserEntity();
+        userEntity.setId(USER_UUID);
+        userEntity.setEmail("user@example.com");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEntity));
+
+        // Mock that user is already a member
+        var existingMember = new TeamMemberEntity();
+        when(teamMemberRepository.findByTeamIdAndUserId(TEAM_UUID, USER_UUID))
+                .thenReturn(Optional.of(existingMember));
+
+        // when / then
+        mockMvc.perform(post("/teams/{teamId}/members", teamId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("User is already a member of this team"));
     }
 
     @Test
@@ -201,25 +232,33 @@ public class TeamControllerTest {
     @Test
     void testGetTeamMembersByTeamEndpoint() throws Exception {
         String teamId = TEAM_UUID.toString();
-        String userId = USER_UUID.toString();
 
         var tm = new TeamMemberEntity();
         tm.setId(MEMBER_UUID);
         tm.setTeamId(TEAM_UUID);
         tm.setUserId(USER_UUID);
-        tm.setRole(Role.valueOf("PLAYER"));
+        tm.setRole(Role.PLAYER);
 
-        when(teamMemberRepository.findByTeamId(TEAM_UUID))
-                .thenReturn(List.of(tm));
+        var user = new UserEntity();
+        user.setId(USER_UUID);
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
+
+        when(teamMemberRepository.findByTeamId(TEAM_UUID)).thenReturn(List.of(tm));
+        when(userRepository.findById(USER_UUID)).thenReturn(Optional.of(user));
 
         // when / then
         mockMvc.perform(get("/teams/{teamId}/members", teamId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members[0].teamMemberId").value(MEMBER_UUID.toString()))
                 .andExpect(jsonPath("$.members[0].teamId").value(teamId))
-                .andExpect(jsonPath("$.members[0].userId").value(userId))
+                .andExpect(jsonPath("$.members[0].userId").value(USER_UUID.toString()))
+                .andExpect(jsonPath("$.members[0].username").value("testuser"))
+                .andExpect(jsonPath("$.members[0].email").value("test@example.com"))
+                .andExpect(jsonPath("$.members[0].role").value("PLAYER"))
                 .andExpect(jsonPath("$.totalCount").value(1));
     }
+
 
     @Test
     void testRemoveTeamMemberEndpoint() throws Exception {

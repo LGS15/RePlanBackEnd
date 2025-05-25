@@ -5,6 +5,7 @@ package com.replan.business.mapper;
 import com.replan.domain.requests.AddTeamMemberRequest;
 import com.replan.domain.responses.AddTeamMemberResponse;
 import com.replan.persistance.entity.TeamMemberEntity;
+import com.replan.persistance.entity.UserEntity;
 
 import java.util.UUID;
 
@@ -25,12 +26,25 @@ public class TeamMemberMapper {
 
     public static AddTeamMemberResponse toResponse(TeamMemberEntity e) {
         if (e == null) return null;
-        AddTeamMemberResponse m = new AddTeamMemberResponse(
-        e.getId().toString(),
-        e.getTeamId().toString(),
-        e.getUserId().toString(),
-        e.getRole()
+        return new AddTeamMemberResponse(
+                e.getId().toString(),
+                e.getTeamId().toString(),
+                e.getUserId().toString(),
+                null,
+                null,
+                e.getRole()
         );
-        return m;
+    }
+
+    public static AddTeamMemberResponse toResponse(TeamMemberEntity e, UserEntity user) {
+        if (e == null) return null;
+        return new AddTeamMemberResponse(
+                e.getId().toString(),
+                e.getTeamId().toString(),
+                e.getUserId().toString(),
+                user != null ? user.getUsername() : null,
+                user != null ? user.getEmail() : null,
+                e.getRole()
+        );
     }
 }

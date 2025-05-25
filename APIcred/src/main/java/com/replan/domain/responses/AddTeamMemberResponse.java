@@ -10,5 +10,7 @@ public class AddTeamMemberResponse {
     private String teamMemberId;
     private String teamId;
     private String userId;
+    private String username;
+    private String email;
     private Role role;
 }

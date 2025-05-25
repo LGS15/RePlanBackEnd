@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -53,50 +54,61 @@ class AddTeamMemberImplTest {
 
     @Test
     void happyPath_shouldSaveAndReturnResponse() {
-
+        // Arrange
         var teamEnt = new TeamEntity();
         teamEnt.setId(TEAM_ID);
         when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
 
-        // user exists
+        // User exists
         var userEnt = new UserEntity();
         userEnt.setId(USER_ID);
         userEnt.setEmail("user@example.com");
+        userEnt.setUsername("testuser");
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
 
-        // save in repo
+        // User is not already a member
+        when(tmRepo.findByTeamIdAndUserId(TEAM_ID, USER_ID)).thenReturn(Optional.empty());
+
+        // Save in repo
         var me = new TeamMemberEntity();
         me.setId(MEMBER_ID);
         me.setTeamId(TEAM_ID);
         me.setUserId(USER_ID);
-        me.setRole(Role.valueOf("PLAYER"));
+        me.setRole(Role.PLAYER);
         when(tmRepo.save(any(TeamMemberEntity.class))).thenReturn(me);
 
-        // request
+        // Request
         var req = new AddTeamMemberRequest();
         req.setTeamId(TEAM_ID.toString());
         req.setEmail("user@example.com");
         req.setRole(Role.PLAYER);
 
+        // Act
         AddTeamMemberResponse resp = subject.addTeamMember(req);
 
+        // Assert
         assertThat(resp.getTeamMemberId()).isEqualTo(MEMBER_ID.toString());
         assertThat(resp.getTeamId()).isEqualTo(TEAM_ID.toString());
         assertThat(resp.getUserId()).isEqualTo(USER_ID.toString());
+        assertThat(resp.getUsername()).isEqualTo("testuser");
+        assertThat(resp.getEmail()).isEqualTo("user@example.com");
         assertThat(resp.getRole()).isEqualTo(Role.PLAYER);
 
         verify(tmRepo).save(argThat(ent ->
                 ent.getTeamId().equals(TEAM_ID)
                         && ent.getUserId().equals(USER_ID)
-                        && ent.getRole().equals(Role.valueOf("PLAYER"))
+                        && ent.getRole().equals(Role.PLAYER)
         ));
     }
 
     @Test
     void missingTeam_shouldThrow() {
+        // Arrange
         when(teamRepository.findById(NONEXISTENT_TEAM_ID)).thenReturn(Optional.empty());
         var req = new AddTeamMemberRequest();
         req.setTeamId(NONEXISTENT_TEAM_ID.toString());
+
+        // Act & Assert
         assertThatThrownBy(() -> subject.addTeamMember(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team not found");
@@ -104,12 +116,12 @@ class AddTeamMemberImplTest {
 
     @Test
     void missingUser_shouldThrow() {
-
+        // Arrange
         var teamEnt = new TeamEntity();
         teamEnt.setId(TEAM_ID);
         when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
 
-        // user does not exist
+        // User does not exist
         when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
 
         var req = new AddTeamMemberRequest();
@@ -117,8 +129,65 @@ class AddTeamMemberImplTest {
         req.setEmail("nonexistent@example.com");
         req.setRole(Role.PLAYER);
 
+        // Act & Assert
         assertThatThrownBy(() -> subject.addTeamMember(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("User with email nonexistent@example.com not found");
+    }
+
+    @Test
+    void duplicateMember_shouldThrow() {
+        // Arrange
+        var teamEnt = new TeamEntity();
+        teamEnt.setId(TEAM_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
+
+        var userEnt = new UserEntity();
+        userEnt.setId(USER_ID);
+        userEnt.setEmail("user@example.com");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
+
+        // User is already a member
+        var existingMember = new TeamMemberEntity();
+        existingMember.setTeamId(TEAM_ID);
+        existingMember.setUserId(USER_ID);
+        when(tmRepo.findByTeamIdAndUserId(TEAM_ID, USER_ID)).thenReturn(Optional.of(existingMember));
+
+        var req = new AddTeamMemberRequest();
+        req.setTeamId(TEAM_ID.toString());
+        req.setEmail("user@example.com");
+        req.setRole(Role.PLAYER);
+
+        // Act & Assert
+        assertThatThrownBy(() -> subject.addTeamMember(req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("User is already a member of this team");
+    }
+
+    @Test
+    void databaseConstraintViolation_shouldThrow() {
+        // Arrange
+        var teamEnt = new TeamEntity();
+        teamEnt.setId(TEAM_ID);
+        when(teamRepository.findById(TEAM_ID)).thenReturn(Optional.of(teamEnt));
+
+        var userEnt = new UserEntity();
+        userEnt.setId(USER_ID);
+        userEnt.setEmail("user@example.com");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
+
+        // Check passes but database constraint fails
+        when(tmRepo.findByTeamIdAndUserId(TEAM_ID, USER_ID)).thenReturn(Optional.empty());
+        when(tmRepo.save(any(TeamMemberEntity.class))).thenThrow(new DataIntegrityViolationException("Duplicate key"));
+
+        var req = new AddTeamMemberRequest();
+        req.setTeamId(TEAM_ID.toString());
+        req.setEmail("user@example.com");
+        req.setRole(Role.PLAYER);
+
+        // Act & Assert
+        assertThatThrownBy(() -> subject.addTeamMember(req))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("User is already a member of this team");
     }
 }

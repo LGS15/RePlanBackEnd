@@ -6,6 +6,9 @@ import com.replan.domain.requests.GetTeamMembersByTeamRequest;
 import com.replan.domain.responses.AddTeamMemberResponse;
 import com.replan.domain.responses.GetTeamMembersByTeamResponse;
 import com.replan.persistance.TeamMemberRepository;
+import com.replan.persistance.UserRepository;
+import com.replan.persistance.entity.TeamMemberEntity;
+import com.replan.persistance.entity.UserEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,21 +19,25 @@ import java.util.stream.Collectors;
 public class GetTeamMembersByTeamImpl implements GetTeamMembersByTeamUseCase {
 
     private final TeamMemberRepository teamMemberRepository;
+    private final UserRepository userRepository;
 
-    public GetTeamMembersByTeamImpl(TeamMemberRepository teamMemberRepository) {
+    public GetTeamMembersByTeamImpl(TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
         this.teamMemberRepository = teamMemberRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public GetTeamMembersByTeamResponse getTeamMembers(GetTeamMembersByTeamRequest request) {
-       List<AddTeamMemberResponse> members = teamMemberRepository
-               .findByTeamId(UUID.fromString(request.getTeamId()))
-               .stream()
-               .map(TeamMemberMapper::toResponse)
-               .collect(Collectors.toList());
+        List<TeamMemberEntity> teamMembers = teamMemberRepository
+                .findByTeamId(UUID.fromString(request.getTeamId()));
 
-       return new GetTeamMembersByTeamResponse(members);
+        List<AddTeamMemberResponse> members = teamMembers.stream()
+                .map(teamMember -> {
+                    UserEntity user = userRepository.findById(teamMember.getUserId()).orElse(null);
+                    return TeamMemberMapper.toResponse(teamMember, user);
+                })
+                .collect(Collectors.toList());
+
+        return new GetTeamMembersByTeamResponse(members);
     }
-
-
 }

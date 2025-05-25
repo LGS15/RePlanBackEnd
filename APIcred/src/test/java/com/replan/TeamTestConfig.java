@@ -77,8 +77,8 @@ public class TeamTestConfig {
 
     @Bean
     public GetTeamMembersByTeamUseCase getTeamMembersByTeamUseCase(
-            TeamMemberRepository teamMemberRepository
+            TeamMemberRepository teamMemberRepository,UserRepository userRepository
     ) {
-        return new GetTeamMembersByTeamImpl(teamMemberRepository);
+        return new GetTeamMembersByTeamImpl(teamMemberRepository, userRepository);
     }
 }

@@ -11,6 +11,7 @@ import com.replan.persistance.UserRepository;
 import com.replan.persistance.entity.TeamEntity;
 import com.replan.persistance.entity.TeamMemberEntity;
 import com.replan.persistance.entity.UserEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -29,7 +30,6 @@ public class AddTeamMemberImpl implements AddTeamMemberUseCase {
         this.teamRepository = teamRepository;
         this.teamMemberRepository = teamMemberRepository;
     }
-
     @Override
     public AddTeamMemberResponse addTeamMember(AddTeamMemberRequest request) {
         // Check if the team actually exists
@@ -38,12 +38,24 @@ public class AddTeamMemberImpl implements AddTeamMemberUseCase {
 
         UserEntity user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User with email " + request.getEmail() + " not found"));
-        
+
+        boolean isAlreadyMember = teamMemberRepository.findByTeamIdAndUserId(
+                UUID.fromString(request.getTeamId()),
+                user.getId()
+        ).isPresent();
+
+        if (isAlreadyMember) {
+            throw new IllegalArgumentException("User is already a member of this team");
+        }
+
         TeamMemberEntity teamMember = TeamMemberMapper.toEntity(request, String.valueOf(user.getId()));
 
-        TeamMemberEntity saved = teamMemberRepository.save(teamMember);
-
-        return TeamMemberMapper.toResponse(saved);
+        try {
+            TeamMemberEntity saved = teamMemberRepository.save(teamMember);
+            return TeamMemberMapper.toResponse(saved, user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("User is already a member of this team");
+        }
     }
 
 }
