@@ -14,20 +14,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  flyway:
-    image: flyway/flyway:9
-    depends_on:
-      dev-db:
-        condition: service_healthy
-    volumes:
-      - ./flyway/sql:/flyway/sql
-    command:
-      - -connectRetries=10
-      - -url=jdbc:mysql://dev-db:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false
-      - -user=root
-      - -password=root
-      - migrate
+    networks:
+      - app-network
 
   api:
     build:
@@ -46,20 +34,14 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
       JWT_SECRET: ${JWT_SECRET:-iamafanofhakozbealzbecauseshesverycoolandfunnyandaustralianbutalsothesongsareagreat}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    networks:
+      - app-network
 
-  sonarqube:
-    image: sonarqube:community
-    ports:
-      - "9000:9000"
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
+
 
 volumes:
   db-data:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
+
+networks:
+  app-network:
+    driver: bridge
