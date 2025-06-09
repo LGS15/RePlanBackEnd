@@ -3,6 +3,7 @@ package com.replan.business.impl.reviewSession;
 import com.replan.business.usecases.reviewSession.JoinReviewSessionUseCase;
 import com.replan.domain.objects.SessionStatus;
 import com.replan.domain.requests.JoinSessionRequest;
+import com.replan.domain.responses.JoinSessionResponse;
 import com.replan.persistance.ReviewSessionParticipantRepository;
 import com.replan.persistance.ReviewSessionRepository;
 import com.replan.persistance.TeamMemberRepository;
@@ -34,7 +35,7 @@ public class JoinReviewSessionImpl implements JoinReviewSessionUseCase {
     }
 
     @Override
-    public void joinSession(JoinSessionRequest request) {
+    public JoinSessionResponse joinSession(JoinSessionRequest request) {
         if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
             throw new IllegalArgumentException("Session ID cannot be empty");
         }
@@ -49,21 +50,25 @@ public class JoinReviewSessionImpl implements JoinReviewSessionUseCase {
             throw new IllegalArgumentException("Session is not active");
         }
 
-        // Verify user is a member of the team
         boolean isMember = teamMemberRepository.findByTeamIdAndUserId(session.getTeamId(), currentUserId).isPresent();
         if (!isMember) {
             throw new AccessDeniedException("You must be a team member to join this session");
         }
 
-        // Check if user is already an active participant
         Optional<ReviewSessionParticipantEntity> existingParticipant =
                 participantRepository.findBySessionIdAndUserIdAndIsActive(sessionId, currentUserId, true);
 
         if (existingParticipant.isPresent()) {
-            throw new IllegalArgumentException("You are already in this session");
+            Long activeCount = participantRepository.countActiveParticipants(sessionId);
+            return new JoinSessionResponse(
+                    request.getSessionId(),
+                    "Already in session",
+                    session.getCurrentTimestamp(),
+                    session.getIsPlaying(),
+                    activeCount.intValue()
+            );
         }
 
-        // Add user as participant
         ReviewSessionParticipantEntity participant = new ReviewSessionParticipantEntity();
         participant.setSessionId(sessionId);
         participant.setUserId(currentUserId);
@@ -71,6 +76,16 @@ public class JoinReviewSessionImpl implements JoinReviewSessionUseCase {
         participant.setIsActive(true);
 
         participantRepository.save(participant);
+
+        Long activeCount = participantRepository.countActiveParticipants(sessionId);
+
+        return new JoinSessionResponse(
+                request.getSessionId(),
+                "Successfully joined session",
+                session.getCurrentTimestamp(),
+                session.getIsPlaying(),
+                activeCount.intValue()
+        );
     }
 
     private UUID getCurrentUserId() {

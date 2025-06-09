@@ -2,6 +2,8 @@ package com.replan.business.impl.reviewSession;
 
 import com.replan.business.usecases.reviewSession.EndReviewSessionUseCase;
 import com.replan.domain.objects.SessionStatus;
+import com.replan.domain.requests.EndSessionRequest;
+import com.replan.domain.responses.EndSessionResponse;
 import com.replan.persistance.ReviewSessionParticipantRepository;
 import com.replan.persistance.ReviewSessionRepository;
 import com.replan.persistance.TeamMemberRepository;
@@ -33,12 +35,12 @@ public class EndReviewSessionImpl implements EndReviewSessionUseCase {
 
     @Override
     @Transactional
-    public void endSession(String sessionId) {
-        if (sessionId == null || sessionId.isEmpty()) {
+    public EndSessionResponse endSession(EndSessionRequest request) {
+        if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
             throw new IllegalArgumentException("Session ID cannot be empty");
         }
 
-        UUID sessionUuid = UUID.fromString(sessionId);
+        UUID sessionUuid = UUID.fromString(request.getSessionId());
         UUID currentUserId = getCurrentUserId();
 
         ReviewSessionEntity session = reviewSessionRepository.findById(sessionUuid)
@@ -51,11 +53,25 @@ public class EndReviewSessionImpl implements EndReviewSessionUseCase {
             throw new AccessDeniedException("You don't have permission to end this session");
         }
 
+        if (session.getStatus() == SessionStatus.ENDED) {
+            return new EndSessionResponse(
+                    request.getSessionId(),
+                    "Session was already ended",
+                    false
+            );
+        }
+
         session.setStatus(SessionStatus.ENDED);
         session.setEndedAt(LocalDateTime.now());
         reviewSessionRepository.save(session);
 
         participantRepository.markParticipantAsLeft(sessionUuid, currentUserId, LocalDateTime.now());
+
+        return new EndSessionResponse(
+                request.getSessionId(),
+                "Session successfully ended",
+                true
+        );
     }
 
     private UUID getCurrentUserId() {

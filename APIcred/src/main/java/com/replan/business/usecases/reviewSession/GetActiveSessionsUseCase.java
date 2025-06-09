@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface GetActiveSessionsUseCase {
     List<ReviewSessionResponse> getActiveSessions (String teamId);
+    ReviewSessionResponse getSessionById(String sessionId);
 }

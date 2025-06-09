@@ -1,8 +1,11 @@
 
-ALTER TABLE Note DROP FOREIGN KEY Note_ibfk_1;
-ALTER TABLE Note DROP COLUMN video_id;
+SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE `Note`
+DROP COLUMN IF EXISTS `video_id`;
+SET FOREIGN_KEY_CHECKS = 1;
 
-DROP TABLE IF EXISTS Video;
+-- 2) Drop the old Video table if it’s there
+DROP TABLE IF EXISTS `Video`;
 
 CREATE TABLE ReviewSession (
                                id BINARY(16) PRIMARY KEY,
@@ -33,5 +36,8 @@ CREATE TABLE ReviewSessionParticipant (
 );
 
 
-ALTER TABLE Note ADD COLUMN session_id BINARY(16);
-ALTER TABLE Note ADD FOREIGN KEY (session_id) REFERENCES ReviewSession(id);
+ALTER TABLE Note
+    ADD COLUMN IF NOT EXISTS `session_id` BINARY(16);
+ALTER TABLE `Note`
+    ADD CONSTRAINT `fk_note_session`
+        FOREIGN KEY (`session_id`) REFERENCES `ReviewSession`(`id`);

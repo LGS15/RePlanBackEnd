@@ -1,7 +1,8 @@
 package com.replan.business.usecases.reviewSession;
 
 import com.replan.domain.requests.JoinSessionRequest;
+import com.replan.domain.responses.JoinSessionResponse;
 
 public interface JoinReviewSessionUseCase {
-    void joinSession(JoinSessionRequest request);
+    JoinSessionResponse joinSession(JoinSessionRequest request);
 }

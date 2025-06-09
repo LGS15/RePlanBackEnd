@@ -54,4 +54,19 @@ public class ReviewSessionMapper {
                 0 // activeParticipants
         );
     }
+
+    public static ReviewSessionResponse toResponseWithParticipantCount(ReviewSessionEntity entity, Integer activeParticipants) {
+        return new ReviewSessionResponse(
+                entity.getId().toString(),
+                entity.getTeamId().toString(),
+                entity.getVideoUrl(),
+                entity.getTitle(),
+                entity.getDescription(),
+                entity.getCurrentTimestamp(),
+                entity.getIsPlaying(),
+                entity.getCreatedBy().toString(),
+                entity.getStatus().toString(),
+                activeParticipants
+        );
+    }
 }

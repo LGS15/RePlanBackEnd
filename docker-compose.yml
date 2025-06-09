@@ -24,8 +24,6 @@ services:
     depends_on:
       dev-db:
         condition: service_healthy
-      flyway:
-        condition: service_completed_successfully
     ports:
       - "8080:8080"
     environment:
