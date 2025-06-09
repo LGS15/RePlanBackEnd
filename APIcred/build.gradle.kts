@@ -98,4 +98,7 @@ flyway {
 	password = "root"
 	schemas  = arrayOf("team_platform")
 	locations = arrayOf("classpath:db/migration")
+
+	baselineOnMigrate = true
+	validateOnMigrate = false
 }

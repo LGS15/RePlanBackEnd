@@ -1,19 +1,31 @@
-
 SET FOREIGN_KEY_CHECKS = 0;
-ALTER TABLE `Note`
-DROP COLUMN IF EXISTS `video_id`;
+
+-- Remove the video_id column from Note table if it exists
+SET @sql = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'Note'
+     AND COLUMN_NAME = 'video_id') > 0,
+    'ALTER TABLE Note DROP COLUMN video_id',
+    'SELECT 1'
+));
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Drop the old Video table if it exists
+DROP TABLE IF EXISTS Video;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
--- 2) Drop the old Video table if it’s there
-DROP TABLE IF EXISTS `Video`;
-
+-- Create ReviewSession table
 CREATE TABLE ReviewSession (
                                id BINARY(16) PRIMARY KEY,
                                team_id BINARY(16) NOT NULL,
                                video_url VARCHAR(500) NOT NULL,
                                title VARCHAR(200) NOT NULL,
                                description TEXT,
-                               current_timestamp BIGINT NOT NULL DEFAULT 0,
+                               video_timestamp BIGINT NOT NULL DEFAULT 0,
                                is_playing BOOLEAN NOT NULL DEFAULT FALSE,
                                created_by BINARY(16) NOT NULL,
                                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -23,6 +35,7 @@ CREATE TABLE ReviewSession (
                                FOREIGN KEY (created_by) REFERENCES UserAccount(id)
 );
 
+-- Create ReviewSessionParticipant table
 CREATE TABLE ReviewSessionParticipant (
                                           id BINARY(16) PRIMARY KEY,
                                           session_id BINARY(16) NOT NULL,
@@ -35,9 +48,28 @@ CREATE TABLE ReviewSessionParticipant (
                                           UNIQUE KEY unique_active_participant (session_id, user_id, is_active)
 );
 
+-- Add session_id column to Note table if it doesn't exist
+SET @sql = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'Note'
+     AND COLUMN_NAME = 'session_id') = 0,
+    'ALTER TABLE Note ADD COLUMN session_id BINARY(16)',
+    'SELECT 1'
+));
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
-ALTER TABLE Note
-    ADD COLUMN IF NOT EXISTS `session_id` BINARY(16);
-ALTER TABLE `Note`
-    ADD CONSTRAINT `fk_note_session`
-        FOREIGN KEY (`session_id`) REFERENCES `ReviewSession`(`id`);
+-- Add foreign key constraint if it doesn't exist
+SET @sql = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+     WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'Note'
+     AND CONSTRAINT_NAME = 'fk_note_session') = 0,
+    'ALTER TABLE Note ADD CONSTRAINT fk_note_session FOREIGN KEY (session_id) REFERENCES ReviewSession(id)',
+    'SELECT 1'
+));
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

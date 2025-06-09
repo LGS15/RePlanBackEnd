@@ -37,7 +37,7 @@ public class ReviewSessionEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "current_timestamp", nullable = false)
+    @Column(name = "video_timestamp", nullable = false)
     private Long currentTimestamp = 0L;
 
     @Column(name = "is_playing", nullable = false)
