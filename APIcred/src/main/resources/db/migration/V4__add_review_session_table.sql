@@ -1,6 +1,22 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Remove the video_id column from Note table if it exists
+-- Drop FK on Note.video_id if exists
+SET @fk_name = (
+  SELECT CONSTRAINT_NAME
+  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'Note'
+    AND COLUMN_NAME = 'video_id'
+    AND REFERENCED_TABLE_NAME IS NOT NULL
+  LIMIT 1
+);
+
+SET @sql = IF(@fk_name IS NOT NULL, CONCAT('ALTER TABLE Note DROP FOREIGN KEY ', @fk_name), 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Now drop video_id column if it exists
 SET @sql = (SELECT IF(
     (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE()
@@ -35,7 +51,7 @@ CREATE TABLE ReviewSession (
                                FOREIGN KEY (created_by) REFERENCES UserAccount(id)
 );
 
--- Create ReviewSessionParticipant table
+
 CREATE TABLE ReviewSessionParticipant (
                                           id BINARY(16) PRIMARY KEY,
                                           session_id BINARY(16) NOT NULL,

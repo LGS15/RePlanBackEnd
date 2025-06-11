@@ -21,5 +21,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws/review-session")
                 .setAllowedOrigins("http://localhost:5173")
                 .withSockJS();
+
+        registry.addEndpoint("/ws/review-session")
+                .setAllowedOrigins("http://localhost:5173");
     }
 }
