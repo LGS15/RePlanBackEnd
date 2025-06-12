@@ -46,13 +46,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 Boolean isAuthenticated = (Boolean) accessor.getSessionAttributes().get("authenticated");
 
                 if (user == null || !Boolean.TRUE.equals(isAuthenticated)) {
-                    System.err.println("❌ Unauthenticated user attempting to send message. Command: " + accessor.getCommand());
-                    System.err.println("❌ User: " + user + ", Authenticated: " + isAuthenticated);
-                    System.err.println("❌ Session ID: " + accessor.getSessionId());
-                    System.err.println("❌ Destination: " + accessor.getDestination());
-                    return null; // Block the message
+                    System.out.println("⚠️ WebSocket security disabled - allowing unauthenticated "
+                            + accessor.getCommand() + " to " + accessor.getDestination());
                 } else {
-                    System.out.println("✅ Authenticated user " + user.getUsername() + " sending " + accessor.getCommand() + " to " + accessor.getDestination());
+                    System.out.println("✅ Authenticated user " + user.getUsername()
+                            + " sending " + accessor.getCommand() + " to " + accessor.getDestination());
                 }
             }
         }
