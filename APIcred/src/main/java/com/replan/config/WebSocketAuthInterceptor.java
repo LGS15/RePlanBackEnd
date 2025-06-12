@@ -24,29 +24,35 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         this.userRepository = userRepository;
     }
 
+    // Enhanced WebSocketAuthInterceptor.java - preSend method
+
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
-            // Handle CONNECT commands - authenticate the user
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 authenticateUser(accessor);
             }
 
-            // Handle DISCONNECT commands - cleanup if needed
             else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
                 handleDisconnect(accessor);
             }
 
-            // For other commands, ensure user is authenticated
             else if (StompCommand.SEND.equals(accessor.getCommand()) ||
                     StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
 
                 UserEntity user = (UserEntity) accessor.getSessionAttributes().get("user");
-                if (user == null) {
-                    System.err.println("❌ Unauthenticated user attempting to send message");
+                Boolean isAuthenticated = (Boolean) accessor.getSessionAttributes().get("authenticated");
+
+                if (user == null || !Boolean.TRUE.equals(isAuthenticated)) {
+                    System.err.println("❌ Unauthenticated user attempting to send message. Command: " + accessor.getCommand());
+                    System.err.println("❌ User: " + user + ", Authenticated: " + isAuthenticated);
+                    System.err.println("❌ Session ID: " + accessor.getSessionId());
+                    System.err.println("❌ Destination: " + accessor.getDestination());
                     return null; // Block the message
+                } else {
+                    System.out.println("✅ Authenticated user " + user.getUsername() + " sending " + accessor.getCommand() + " to " + accessor.getDestination());
                 }
             }
         }
