@@ -28,34 +28,89 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Extract token from STOMP headers during connection
-            List<String> authHeaders = accessor.getNativeHeader("Authorization");
+        if (accessor != null) {
+            // Handle CONNECT commands - authenticate the user
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                authenticateUser(accessor);
+            }
 
-            if (authHeaders != null && !authHeaders.isEmpty()) {
-                String authHeader = authHeaders.get(0);
-                if (authHeader.startsWith("Bearer ")) {
-                    String token = authHeader.substring(7);
+            // Handle DISCONNECT commands - cleanup if needed
+            else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+                handleDisconnect(accessor);
+            }
 
-                    try {
-                        if (jwtUtil.validateToken(token)) {
-                            String email = jwtUtil.getEmailFromToken(token);
-                            UserEntity user = userRepository.findByEmail(email).orElse(null);
+            // For other commands, ensure user is authenticated
+            else if (StompCommand.SEND.equals(accessor.getCommand()) ||
+                    StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
 
-                            if (user != null) {
-                                // Store token in session attributes for later use
-                                accessor.getSessionAttributes().put("token", token);
-                                accessor.getSessionAttributes().put("user", user);
-                                System.out.println("WebSocket authenticated for user: " + user.getUsername());
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.err.println("WebSocket authentication failed: " + e.getMessage());
-                    }
+                UserEntity user = (UserEntity) accessor.getSessionAttributes().get("user");
+                if (user == null) {
+                    System.err.println("❌ Unauthenticated user attempting to send message");
+                    return null; // Block the message
                 }
             }
         }
 
         return message;
+    }
+
+    private void authenticateUser(StompHeaderAccessor accessor) {
+        try {
+            // Extract token from STOMP headers during connection
+            List<String> authHeaders = accessor.getNativeHeader("Authorization");
+
+            if (authHeaders != null && !authHeaders.isEmpty()) {
+                String authHeader = authHeaders.get(0);
+
+                if (authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+
+                    if (jwtUtil.validateToken(token)) {
+                        String email = jwtUtil.getEmailFromToken(token);
+                        UserEntity user = userRepository.findByEmail(email).orElse(null);
+
+                        if (user != null) {
+                            // Store authentication info in session attributes
+                            accessor.getSessionAttributes().put("token", token);
+                            accessor.getSessionAttributes().put("user", user);
+                            accessor.getSessionAttributes().put("authenticated", true);
+
+                            System.out.println("✅ WebSocket authenticated for user: " + user.getUsername() + " (ID: " + user.getId() + ")");
+                            return;
+                        } else {
+                            System.err.println("❌ User not found for email: " + email);
+                        }
+                    } else {
+                        System.err.println("❌ Invalid JWT token in WebSocket connection");
+                    }
+                } else {
+                    System.err.println("❌ Invalid Authorization header format in WebSocket connection");
+                }
+            } else {
+                System.err.println("❌ No Authorization header found in WebSocket connection");
+            }
+
+            // If we reach here, authentication failed
+            accessor.getSessionAttributes().put("authenticated", false);
+
+        } catch (Exception e) {
+            System.err.println("❌ WebSocket authentication failed: " + e.getMessage());
+            e.printStackTrace();
+            accessor.getSessionAttributes().put("authenticated", false);
+        }
+    }
+
+    private void handleDisconnect(StompHeaderAccessor accessor) {
+        try {
+            UserEntity user = (UserEntity) accessor.getSessionAttributes().get("user");
+            if (user != null) {
+                System.out.println("🔌 WebSocket disconnected for user: " + user.getUsername());
+
+                // Could send user left messages here if needed
+                // messagingTemplate.convertAndSend("/topic/session/...", userLeftMessage);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error handling WebSocket disconnect: " + e.getMessage());
+        }
     }
 }
