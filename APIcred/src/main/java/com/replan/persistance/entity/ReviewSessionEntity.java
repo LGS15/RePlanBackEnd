@@ -21,7 +21,7 @@ public class ReviewSessionEntity {
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Convert(converter = UuidToBytesConverter.class)
-    @Column(name= "id", updatable = false, nullable = false, columnDefinition = "BINARY(16")
+    @Column(name= "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Convert(converter = UuidToBytesConverter.class)
