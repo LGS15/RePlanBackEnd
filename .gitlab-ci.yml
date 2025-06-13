@@ -37,7 +37,7 @@ build:
 test:
   stage: test
   dependencies:
-    -build
+    - build
   script:
     - cd APIcred
     - ./gradlew test jacocoTestReport
