@@ -3,38 +3,59 @@ variables:
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
 
+.before_script: &before_script
+  - git config --global --add safe.directory "$CI_PROJECT_DIR"
+
+.gradle_cache: &gradle_cache
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - APIcred/.gradle/wrapper
+    - APIcred/.gradle/caches
+
+default:
+  before_script: *before_script
+  cache: *gradle_cache
+  image: gradle:8.13-jdk17
+
 stages:
-  - build-test
+  - build
+  - test
   - sonar
   - docker
 
-build-and-test:
-  stage: build-test
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
+build:
+  stage: build
   script:
     - cd APIcred
-    - .\gradlew.bat clean build test jacocoTestReport
+    - ./gradlew clean build -x test
   artifacts:
     paths:
       - APIcred/build/libs/*.jar
       - APIcred/build/reports/jacoco/
     expire_in: 1 hour
-  cache:
-    key: "$CI_COMMIT_REF_SLUG"
+
+test:
+  stage: test
+  dependencies:
+    -build
+  script:
+    - cd APIcred
+    - ./gradlew test jacocoTestReport
+  artifacts:
     paths:
-      - APIcred/.gradle/wrapper
-      - APIcred/.gradle/caches
+      - APICred/build/reports/jacoco/
+    expire_in: 1 hour
+  cache:
+    <<: *gradle_cache
+    policy: pull
 
 sonar:
   stage: sonar
   dependencies:
-    - build-and-test
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
+    - test
   script:
     - cd APIcred
-    - .\gradlew.bat sonar -x test -x build
+    - ./gradlew sonar -x test -x build
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
@@ -43,23 +64,21 @@ sonar:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
-    paths:
-      - APIcred/.gradle/wrapper
-      - APIcred/.gradle/caches
+    <<: *gradle_cache
     policy: pull
   allow_failure: true
 
 docker-build:
   stage: docker
   dependencies:
-    - build-and-test
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
+    - test
+  image: docker:20.10.16
+  services:
+    - docker:dind
   script:
     - docker build -t replan .
-    - docker stop replan-app 2>$null || echo "No existing container to stop"
-    - docker rm replan-app 2>$null || echo "No existing container to remove"
+    - docker stop replan-app 2>/dev/null || echo "No existing container to stop"
+    - docker rm replan-app 2>/dev/null || echo "No existing container to remove"
     - docker run -d -p 8080:8080 --name replan-app replan
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
