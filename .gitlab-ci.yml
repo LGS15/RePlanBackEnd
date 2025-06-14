@@ -1,85 +1,55 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  DOCKER_HOST: tcp://docker:2376
-  DOCKER_TLS_CERTDIR: "/certs"
-
-.before_script: &before_script
-  - git config --global --add safe.directory "$CI_PROJECT_DIR"
-
-.gradle_cache: &gradle_cache
-  key: "$CI_COMMIT_REF_SLUG"
-  paths:
-    - APIcred/.gradle/wrapper
-    - APIcred/.gradle/caches
 
 default:
-  before_script: *before_script
-  cache: *gradle_cache
   image: gradle:8.13-jdk17
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths: [APIcred/.gradle/]
 
-stages:
-  - build
-  - test
-  - sonar
-  - docker
+.gradle-job:
+  before_script:
+    - cd APIcred
+
+stages: [build, test, sonar, deploy]
 
 build:
+  extends: .gradle-job
   stage: build
-  script:
-    - cd APIcred
-    - ./gradlew clean build -x test
+  script: ./gradlew build -x test
   artifacts:
-    paths:
-      - APIcred/build/libs/*.jar
-      - APIcred/build/reports/jacoco/
+    paths: [APIcred/build/libs/*.jar]
     expire_in: 1 hour
 
 test:
+  extends: .gradle-job
   stage: test
-  dependencies:
-    - build
-  script:
-    - cd APIcred
-    - ./gradlew test jacocoTestReport
+  script: ./gradlew test jacocoTestReport
   artifacts:
-    paths:
-      - APICred/build/reports/jacoco/
+    reports:
+      junit: APIcred/build/test-results/test/TEST-*.xml
+    paths: [APIcred/build/reports/jacoco/]
     expire_in: 1 hour
-  cache:
-    <<: *gradle_cache
-    policy: pull
 
 sonar:
+  extends: .gradle-job
   stage: sonar
-  dependencies:
-    - test
-  script:
-    - cd APIcred
-    - ./gradlew sonar -x test -x build
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "master"
+  script: ./gradlew sonar -x test -x build
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
-  cache:
-    <<: *gradle_cache
-    policy: pull
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   allow_failure: true
 
-docker-build:
-  stage: docker
-  dependencies:
-    - test
-  image: docker:20.10.16
-  services:
-    - docker:dind
+docker:
+  stage: deploy
+  image: docker:24-cli
+  services: [docker:24-dind]
   script:
     - docker build -t replan .
-    - docker stop replan-app 2>/dev/null || echo "No existing container to stop"
-    - docker rm replan-app 2>/dev/null || echo "No existing container to remove"
-    - docker run -d -p 8080:8080 --name replan-app replan
+    - docker run -d -p 8080:8080 --name replan-app --rm replan
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH == "develop"
