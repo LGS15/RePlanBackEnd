@@ -18,7 +18,9 @@ build:
   stage: build
   script: ./gradlew build -x test
   artifacts:
-    paths: [APIcred/build/libs/*.jar]
+    paths:
+      - APIcred/build/test-results/test
+      - APIcred/build/reports/jacoco/
     expire_in: 1 hour
 
 test:
@@ -34,10 +36,12 @@ test:
 sonar:
   extends: .gradle-job
   stage: sonar
-  script: ./gradlew sonar -x test -x build
+  needs: [ "test" ]
+  dependencies: [ "test" ]
+  script: ./gradlew sonar -x build
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
-    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
+    SONAR_TOKEN: "sqp_90f94c8d50d64056ae6ffd08d3532d01e8f0c3fe"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
