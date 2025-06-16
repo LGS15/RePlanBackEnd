@@ -4,6 +4,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 	id("jacoco")
 	id("org.sonarqube") version "6.0.1.5171"
+	id("org.flywaydb.flyway") version "10.20.1"
 
 }
 
@@ -43,6 +44,9 @@ dependencies {
 
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-mysql")
+
+
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 sonar {
@@ -50,7 +54,7 @@ sonar {
 		property("sonar.projectKey", "RePlan-Backend")
 		property("sonar.projectName", "RePlan Backend")
 		property("sonar.host.url", "http://localhost:9000")
-		property("sonar.token", "sqp_d09089c97e9a84947e6d0ff08aa7bd5cf6d91606")
+		property("sonar.token", "sqp_90f94c8d50d64056ae6ffd08d3532d01e8f0c3fe")
 		property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
 
 		property("sonar.sources", "src/main/java")
@@ -86,4 +90,15 @@ tasks.jacocoTestReport {
 		xml.required.set(true)
 		html.required.set(true)
 	}
+}
+
+flyway {
+	url      = "jdbc:mysql://localhost:3306/team_platform?allowPublicKeyRetrieval=true&useSSL=false"
+	user     = "root"
+	password = "root"
+	schemas  = arrayOf("team_platform")
+	locations = arrayOf("classpath:db/migration")
+
+	baselineOnMigrate = true
+	validateOnMigrate = false
 }

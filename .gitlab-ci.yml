@@ -1,66 +1,66 @@
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  DOCKER_HOST: tcp://docker:2376
-  DOCKER_TLS_CERTDIR: "/certs"
 
-stages:
-  - build-test
-  - sonar
-  - docker
+default:
+  image: gradle:8.13-jdk17
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths: [APIcred/.gradle/]
 
-build-and-test:
-  stage: build-test
+.gradle-job:
   before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
-  script:
     - cd APIcred
-    - .\gradlew.bat clean build test jacocoTestReport
+
+stages: 
+  - build
+  - test
+  - sonar
+  - deploy
+
+build:
+  extends: .gradle-job
+  stage: build
+  script: ./gradlew build -x test
   artifacts:
     paths:
-      - APIcred/build/libs/*.jar
+      - APIcred/build/test-results/test
       - APIcred/build/reports/jacoco/
+      - APIcred/build/classes/java/main
     expire_in: 1 hour
-  cache:
-    key: "$CI_COMMIT_REF_SLUG"
+
+test:
+  extends: .gradle-job
+  stage: test
+  script: ./gradlew test jacocoTestReport
+  artifacts:
+    reports:
+      junit: APIcred/build/test-results/test/TEST-*.xml
     paths:
-      - APIcred/.gradle/wrapper
-      - APIcred/.gradle/caches
+      - APIcred/build/reports/jacoco/
+      - APIcred/build/test-results/test
+      - APIcred/build/classes/java/test
+    expire_in: 1 hour
 
 sonar:
+  extends: .gradle-job
   stage: sonar
-  dependencies:
-    - build-and-test
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
-  script:
-    - cd APIcred
-    - .\gradlew.bat sonar -x test -x build
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "master"
+  dependencies: ["build", "test"]
+  script: ./gradlew sonar -x build -x test
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
-    SONAR_TOKEN: "sqp_3d2af99752301f76dd0cce3504772fdccc2197cb"
-  cache:
-    key: "$CI_COMMIT_REF_SLUG"
-    paths:
-      - APIcred/.gradle/wrapper
-      - APIcred/.gradle/caches
-    policy: pull
+    SONAR_TOKEN: "sqp_90f94c8d50d64056ae6ffd08d3532d01e8f0c3fe"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   allow_failure: true
 
-docker-build:
-  stage: docker
-  dependencies:
-    - build-and-test
-  before_script:
-    - git config --global --add safe.directory "$env:CI_PROJECT_DIR"
+docker:
+  stage: deploy
+  image: docker:24-cli
+  services: [docker:24-dind]
   script:
     - docker build -t replan .
-    - docker stop replan-app 2>$null || echo "No existing container to stop"
-    - docker rm replan-app 2>$null || echo "No existing container to remove"
-    - docker run -d -p 8080:8080 --name replan-app replan
+    - docker run -d -p 8080:8080 --name replan-app --rm replan
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH == "develop"
