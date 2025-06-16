@@ -40,7 +40,6 @@ test:
 sonar:
   extends: .gradle-job
   stage: sonar
-  needs: ["test"]
   dependencies: ["test"]
   script: ./gradlew sonar -x build
   variables:
