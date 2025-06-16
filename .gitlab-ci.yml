@@ -11,7 +11,11 @@ default:
   before_script:
     - cd APIcred
 
-stages: [build, test, sonar, deploy]
+stages: 
+  - build
+  - test
+  - sonar
+  - deploy
 
 build:
   extends: .gradle-job
@@ -36,8 +40,6 @@ test:
 sonar:
   extends: .gradle-job
   stage: sonar
-  needs: [ "test" ]
-  dependencies: [ "test" ]
   script: ./gradlew sonar -x build
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
