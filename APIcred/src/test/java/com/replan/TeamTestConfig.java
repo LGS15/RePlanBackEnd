@@ -14,9 +14,8 @@ import com.replan.business.usecases.team.GetTeamsByUserUseCase;
 import com.replan.business.usecases.teamMember.AddTeamMemberUseCase;
 import com.replan.business.usecases.teamMember.GetTeamMembersByTeamUseCase;
 import com.replan.business.usecases.teamMember.RemoveTeamMemberUseCase;
-import com.replan.persistance.TeamMemberRepository;
-import com.replan.persistance.TeamRepository;
-import com.replan.persistance.UserRepository;
+import com.replan.persistance.*;
+import com.replan.persistance.entity.ReviewSessionEntity;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -42,13 +41,20 @@ public class TeamTestConfig {
     }
 
     @Bean
+    public ReviewSessionRepository sessionRepository() { return Mockito.mock(ReviewSessionRepository.class); }
+
+    @Bean
+    public ReviewSessionEntity reviewSessionEntity() { return Mockito.mock(ReviewSessionEntity.class); }
+
+    @Bean
     public CreateTeamUseCase createTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository, UserRepository userRepository) {
         return new CreateTeamImpl(teamRepository, teamMemberRepository, userRepository);
     }
 
     @Bean
-    public DeleteTeamUseCase deleteTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository){
-        return new DeleteTeamImpl(teamRepository, teamMemberRepository);
+    public DeleteTeamUseCase deleteTeamUseCase(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository,
+                                               ReviewSessionRepository reviewSessionRepository, ReviewSessionParticipantRepository reviewSessionParticipantRepository) {
+        return new DeleteTeamImpl(teamRepository, teamMemberRepository, reviewSessionRepository, reviewSessionParticipantRepository);
     };
 
     @Bean
