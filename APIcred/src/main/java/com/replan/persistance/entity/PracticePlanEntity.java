@@ -29,13 +29,13 @@ public class PracticePlanEntity {
     @Column(name = "request_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID requestId;
 
-    @Column(name = "focus_one_hours", precision = 4, scale = 2)
+    @Column(name = "focus_one_hours")
     private Double focusOneHours;
 
-    @Column(name = "focus_two_hours", precision = 4, scale = 2)
+    @Column(name = "focus_two_hours")
     private Double focusTwoHours;
 
-    @Column(name = "focus_three_hours", precision = 4, scale = 2)
+    @Column(name = "focus_three_hours")
     private Double focusThreeHours;
 
     @Column(name = "total_hours", nullable = false)
