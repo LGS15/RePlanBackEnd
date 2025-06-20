@@ -45,7 +45,7 @@ sonar:
   extends: .gradle-job
   stage: sonar
   dependencies: ["build", "test"]
-  script: ./gradlew sonar -x build -x test
+  script: ./gradlew sonar -x test
   variables:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqp_90f94c8d50d64056ae6ffd08d3532d01e8f0c3fe"
