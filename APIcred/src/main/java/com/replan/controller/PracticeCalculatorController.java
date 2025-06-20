@@ -1,11 +1,13 @@
 package com.replan.controller;
 
+import com.replan.business.usecases.practice.GetPopularCombinationsUseCase;
 import com.replan.business.usecases.practice.GetTeamPracticeHistoryUseCase;
 import com.replan.business.usecases.practice.GetUserPracticeHistoryUseCase;
 import com.replan.business.usecases.practice.PracticeTimeCalculatorUseCase;
 import com.replan.domain.objects.PracticeFocusInfo;
 import com.replan.domain.requests.CalculatePracticeRequest;
 import com.replan.domain.responses.CalculatePracticeResponse;
+import com.replan.domain.responses.PopularCombinationsResponse;
 import com.replan.persistance.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ public class PracticeCalculatorController {
     private final PracticeTimeCalculatorUseCase calculatorUseCase;
     private final GetUserPracticeHistoryUseCase userHistoryUseCase;
     private final GetTeamPracticeHistoryUseCase teamHistoryUseCase;
+    private final GetPopularCombinationsUseCase popularCombinationsUseCase;
 
     @PostMapping("/calculate")
     public ResponseEntity<CalculatePracticeResponse> calculatePlan(
@@ -65,6 +68,12 @@ public class PracticeCalculatorController {
     ) {
         List<CalculatePracticeResponse> history = teamHistoryUseCase.getTeamPracticeHistory(teamId, limit);
         return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<PopularCombinationsResponse> getPopularCombinations() {
+        PopularCombinationsResponse response = popularCombinationsUseCase.getPopularCombinations();
+        return ResponseEntity.ok(response);
     }
 
     private String getCurrentUserId() {

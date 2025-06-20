@@ -1,6 +1,7 @@
 package com.replan.practice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.replan.business.usecases.practice.GetPopularCombinationsUseCase;
 import com.replan.business.usecases.practice.GetTeamPracticeHistoryUseCase;
 import com.replan.business.usecases.practice.GetUserPracticeHistoryUseCase;
 import com.replan.business.usecases.practice.PracticeTimeCalculatorUseCase;
@@ -9,6 +10,8 @@ import com.replan.domain.objects.PracticeFocusInfo;
 import com.replan.domain.objects.PracticeType;
 import com.replan.domain.requests.CalculatePracticeRequest;
 import com.replan.domain.responses.CalculatePracticeResponse;
+import com.replan.domain.responses.PopularCombinationResponse;
+import com.replan.domain.responses.PopularCombinationsResponse;
 import com.replan.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,13 +60,15 @@ public class PracticeCalculatorControllerTest {
     private GetTeamPracticeHistoryUseCase teamHistoryUseCase;
     @MockitoBean
     private GetUserPracticeHistoryUseCase userHistoryUseCase;
+    @MockitoBean
+    private GetPopularCombinationsUseCase popularCombinationsUseCase;
 
     private SecurityContext securityContext;
     private Authentication authentication;
 
     @BeforeEach
     void resetMocks() {
-        reset(calculatorUseCase, teamHistoryUseCase, userHistoryUseCase);
+        reset(calculatorUseCase, teamHistoryUseCase, userHistoryUseCase, popularCombinationsUseCase);
         securityContext = Mockito.mock(SecurityContext.class);
         authentication = Mockito.mock(Authentication.class);
         SecurityContextHolder.setContext(securityContext);
@@ -157,5 +162,19 @@ public class PracticeCalculatorControllerTest {
         mockMvc.perform(get("/practice-calculator/team/{teamId}/history", teamId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].planId").value(resp.getPlanId()));
+    }
+
+    @Test
+    void getPopularCombinations_shouldReturnResponse() throws Exception {
+        PopularCombinationsResponse resp = new PopularCombinationsResponse(
+                new PopularCombinationResponse(PracticeType.INDIVIDUAL, List.of(PracticeFocus.AIM_TRAINING), 5),
+                new PopularCombinationResponse(PracticeType.TEAM, List.of(PracticeFocus.TEAM_COORDINATION), 3)
+        );
+        when(popularCombinationsUseCase.getPopularCombinations()).thenReturn(resp);
+
+        mockMvc.perform(get("/practice-calculator/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.individual.focuses[0]").value("AIM_TRAINING"))
+                .andExpect(jsonPath("$.team.focuses[0]").value("TEAM_COORDINATION"));
     }
 }
