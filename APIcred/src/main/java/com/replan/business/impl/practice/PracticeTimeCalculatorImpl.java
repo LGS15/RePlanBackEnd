@@ -50,12 +50,14 @@ public class PracticeTimeCalculatorImpl implements PracticeTimeCalculatorUseCase
         // Save the request
         PracticePlanRequestEntity requestEntity = PracticePlanMapper.toRequestEntity(planRequest);
         requestEntity = requestRepository.save(requestEntity);
+        planRequest.setId(requestEntity.getId());
 
         // Calculate allocation
         PracticePlan calculatedPlan = performCalculation(planRequest);
 
         PracticePlanEntity planEntity = PracticePlanMapper.toPlanEntity(calculatedPlan, requestEntity);
         planEntity = planRepository.save(planEntity);
+        calculatedPlan.setId(planEntity.getId());
 
         return PracticePlanMapper.toResponse(calculatedPlan, Collections.emptyList());
     }
@@ -86,7 +88,6 @@ public class PracticeTimeCalculatorImpl implements PracticeTimeCalculatorUseCase
         allocation = applyMinimumTimeConstraints(allocation, totalHours);
 
         PracticePlan plan = new PracticePlan();
-        plan.setId(UUID.randomUUID());
         plan.setRequestId(request.getId());
         plan.setTimeAllocation(allocation);
         plan.setTotalHours(totalHours);

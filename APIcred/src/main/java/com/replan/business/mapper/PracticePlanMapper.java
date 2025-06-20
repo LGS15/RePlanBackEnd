@@ -17,7 +17,6 @@ public class PracticePlanMapper {
 
     public static PracticePlanRequest fromRequest(CalculatePracticeRequest request, UUID userId) {
         PracticePlanRequest domain = new PracticePlanRequest();
-        domain.setId(UUID.randomUUID());
         domain.setUserId(userId);
         domain.setTeamId(request.getTeamId() != null ? UUID.fromString(request.getTeamId()) : null);
         domain.setPracticeType(request.getPracticeType());

@@ -66,9 +66,17 @@ class PracticeTimeCalculatorImplTest {
         );
 
         when(requestRepository.save(any(PracticePlanRequestEntity.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+                .thenAnswer(inv -> {
+                    PracticePlanRequestEntity entity = inv.getArgument(0);
+                    entity.setId(UUID.randomUUID());
+                    return entity;
+                });
         when(planRepository.save(any(PracticePlanEntity.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+                .thenAnswer(inv -> {
+                    PracticePlanEntity entity = inv.getArgument(0);
+                    entity.setId(UUID.randomUUID());
+                    return entity;
+                });
 
         CalculatePracticeResponse resp = subject.calculatePracticeAllocation(req);
 
