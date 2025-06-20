@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.main.allow-bean-definition-overriding=true"
 })
 @ActiveProfiles("test")
-public class PracticeCalculatorControllerTest {
+class PracticeCalculatorControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
