@@ -80,7 +80,7 @@ public class PracticePlanMapper {
             entity.setFocusTwoHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusTwo())));
         }
         if (requestEntity.getFocusThree() != null && allocation.containsKey(requestEntity.getFocusThree())) {
-            entity.setFocusTwoHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusThree())));
+            entity.setFocusThreeHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusThree())));
         }
 
         return entity;
@@ -99,10 +99,10 @@ public class PracticePlanMapper {
             allocation.put(requestEntity.getFocusOne(), entity.getFocusOneHours().doubleValue());
         }
         if (requestEntity.getFocusTwo() != null && entity.getFocusTwoHours() != null) {
-            allocation.put(requestEntity.getFocusOne(), entity.getFocusTwoHours().doubleValue());
+            allocation.put(requestEntity.getFocusTwo(), entity.getFocusTwoHours().doubleValue());
         }
         if (requestEntity.getFocusThree() != null && entity.getFocusThreeHours() != null) {
-            allocation.put(requestEntity.getFocusOne(), entity.getFocusThreeHours().doubleValue());
+            allocation.put(requestEntity.getFocusThree(), entity.getFocusThreeHours().doubleValue());
         }
         domain.setTimeAllocation(allocation);
 

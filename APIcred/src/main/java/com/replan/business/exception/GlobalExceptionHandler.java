@@ -12,11 +12,15 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String MESSAGE_KEY = "message";
+    private static final String ERROR_KEY = "error";
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
-        body.put("message", ex.getMessage());
-        body.put("error", "Bad Request");
+        body.put(MESSAGE_KEY, ex.getMessage());
+        body.put(ERROR_KEY, "Bad Request");
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
@@ -24,8 +28,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
-        body.put("message", ex.getMessage());
-        body.put("error", "Forbidden");
+        body.put(MESSAGE_KEY, ex.getMessage());
+        body.put(ERROR_KEY, "Forbidden");
 
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
@@ -33,8 +37,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
-        body.put("message", "An unexpected error occurred");
-        body.put("error", "Internal Server Error");
+        body.put(MESSAGE_KEY, "An unexpected error occurred");
+        body.put(ERROR_KEY, "Internal Server Error");
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

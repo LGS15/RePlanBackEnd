@@ -48,6 +48,7 @@ sonar:
   dependencies: ["build", "test"]
   script:
     - ./gradlew compileJava compileTestJava
+    - ./gradlew test jacocoTestReport
     - ./gradlew sonar
   variables:
     SONAR_HOST_URL: "http://localhost:9000"

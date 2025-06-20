@@ -42,7 +42,7 @@ public class ReviewSessionWebSocketController {
 
             messagingTemplate.convertAndSend("/topic/session/" + sessionId, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 
@@ -65,7 +65,7 @@ public class ReviewSessionWebSocketController {
 
             messagingTemplate.convertAndSend("/topic/session/" + sessionId, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 
@@ -87,7 +87,7 @@ public class ReviewSessionWebSocketController {
 
             messagingTemplate.convertAndSend("/topic/session/" + sessionId, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 
@@ -107,7 +107,7 @@ public class ReviewSessionWebSocketController {
 
             messagingTemplate.convertAndSend("/topic/session/" + sessionId, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 
@@ -129,7 +129,7 @@ public class ReviewSessionWebSocketController {
 
             messagingTemplate.convertAndSend("/topic/session/" + sessionId, message);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         }
     }
 

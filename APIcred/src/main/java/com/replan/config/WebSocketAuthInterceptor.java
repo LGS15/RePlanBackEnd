@@ -97,7 +97,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
         } catch (Exception e) {
             System.err.println(" WebSocket authentication failed: " + e.getMessage());
-            e.printStackTrace();
             accessor.getSessionAttributes().put("authenticated", false);
         }
     }
