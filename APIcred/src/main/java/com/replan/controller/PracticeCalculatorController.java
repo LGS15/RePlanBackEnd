@@ -59,7 +59,7 @@ public class PracticeCalculatorController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer limit
     ) {
-        List<CalculatePracticeResponse> history = teamHistoryUseCase.getTeamPracticeHistory(userId, page, limit);
+        List<CalculatePracticeResponse> history = userHistoryUseCase.getUserPracticeHistory(userId, page, limit);
         return ResponseEntity.ok(history);
     }
 

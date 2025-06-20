@@ -140,7 +140,7 @@ public class PracticeCalculatorControllerTest {
                 Map.of(),
                 LocalDateTime.now()
         );
-        when(userHistoryUseCase.getUserPracticeHistory(userId,0, 10)).thenReturn(List.of(resp));
+        when(userHistoryUseCase.getUserPracticeHistory(userId, 0, 10)).thenReturn(List.of(resp));
 
         mockMvc.perform(get("/practice-calculator/history/{userId}", userId))
                 .andExpect(status().isOk())
