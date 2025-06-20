@@ -6,6 +6,7 @@ import com.replan.persistance.entity.PracticePlanRequestEntity;
 import com.replan.persistance.entity.PracticePlanEntity;
 import com.replan.domain.requests.CalculatePracticeRequest;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -72,13 +73,14 @@ public class PracticePlanMapper {
 
         Map<PracticeFocus, Double> allocation = domain.getTimeAllocation();
         if (requestEntity.getFocusOne() != null && allocation.containsKey(requestEntity.getFocusOne())) {
-            entity.setFocusOneHours(allocation.get(requestEntity.getFocusOne()));
+            entity.setFocusOneHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusOne())));
+
         }
         if (requestEntity.getFocusTwo() != null && allocation.containsKey(requestEntity.getFocusTwo())) {
-            entity.setFocusTwoHours(allocation.get(requestEntity.getFocusTwo()));
+            entity.setFocusTwoHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusTwo())));
         }
         if (requestEntity.getFocusThree() != null && allocation.containsKey(requestEntity.getFocusThree())) {
-            entity.setFocusThreeHours(allocation.get(requestEntity.getFocusThree()));
+            entity.setFocusTwoHours(BigDecimal.valueOf(allocation.get(requestEntity.getFocusThree())));
         }
 
         return entity;
@@ -94,13 +96,13 @@ public class PracticePlanMapper {
 
         Map<PracticeFocus, Double> allocation = new HashMap<>();
         if (requestEntity.getFocusOne() != null && entity.getFocusOneHours() != null) {
-            allocation.put(requestEntity.getFocusOne(), entity.getFocusOneHours());
+            allocation.put(requestEntity.getFocusOne(), entity.getFocusOneHours().doubleValue());
         }
         if (requestEntity.getFocusTwo() != null && entity.getFocusTwoHours() != null) {
-            allocation.put(requestEntity.getFocusTwo(), entity.getFocusTwoHours());
+            allocation.put(requestEntity.getFocusOne(), entity.getFocusTwoHours().doubleValue());
         }
         if (requestEntity.getFocusThree() != null && entity.getFocusThreeHours() != null) {
-            allocation.put(requestEntity.getFocusThree(), entity.getFocusThreeHours());
+            allocation.put(requestEntity.getFocusOne(), entity.getFocusThreeHours().doubleValue());
         }
         domain.setTimeAllocation(allocation);
 

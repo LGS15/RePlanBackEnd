@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -30,13 +31,13 @@ public class PracticePlanEntity {
     private UUID requestId;
 
     @Column(name = "focus_one_hours")
-    private Double focusOneHours;
+    private BigDecimal focusOneHours;
 
     @Column(name = "focus_two_hours")
-    private Double focusTwoHours;
+    private BigDecimal focusTwoHours;
 
     @Column(name = "focus_three_hours")
-    private Double focusThreeHours;
+    private BigDecimal focusThreeHours;
 
     @Column(name = "total_hours", nullable = false)
     private Integer totalHours;

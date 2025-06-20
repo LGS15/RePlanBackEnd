@@ -6,8 +6,11 @@ import com.replan.domain.objects.PracticeType;
 import com.replan.domain.responses.PopularCombinationResponse;
 import com.replan.domain.responses.PopularCombinationsResponse;
 import com.replan.persistance.PracticePlanRequestRepository;
+
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +25,13 @@ public class GetPopularCombinationsImpl implements GetPopularCombinationsUseCase
 
     @Override
     public PopularCombinationsResponse getPopularCombinations() {
+        Pageable limitOne = PageRequest.of(0, 1);
         PopularCombinationResponse individual = map(PracticeType.INDIVIDUAL,
-                requestRepository.findMostPopularCombination(PracticeType.INDIVIDUAL.name()));
+                requestRepository.findMostPopularCombination(PracticeType.INDIVIDUAL, limitOne)
+                        .stream().findFirst().orElse(null));
         PopularCombinationResponse team = map(PracticeType.TEAM,
-                requestRepository.findMostPopularCombination(PracticeType.TEAM.name()));
+                requestRepository.findMostPopularCombination(PracticeType.TEAM, limitOne)
+                        .stream().findFirst().orElse(null));
         return new PopularCombinationsResponse(individual, team);
     }
 

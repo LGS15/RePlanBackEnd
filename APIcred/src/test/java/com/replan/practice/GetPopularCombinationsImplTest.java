@@ -3,7 +3,7 @@ package com.replan.practice;
 import com.replan.business.impl.practice.GetPopularCombinationsImpl;
 import com.replan.domain.objects.PracticeFocus;
 import com.replan.domain.objects.PracticeType;
-import com.replan.domain.responses.PopularCombinationResponse;
+
 import com.replan.domain.responses.PopularCombinationsResponse;
 import com.replan.persistance.PracticePlanRequestRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,10 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class GetPopularCombinationsImplTest {
@@ -40,10 +43,10 @@ class GetPopularCombinationsImplTest {
 
     @Test
     void shouldReturnPopularCombinations() {
-        when(requestRepository.findMostPopularCombination(PracticeType.INDIVIDUAL.name()))
-                .thenReturn(mockStats("AIM_TRAINING", "GAME_SENSE", null, 5));
-        when(requestRepository.findMostPopularCombination(PracticeType.TEAM.name()))
-                .thenReturn(mockStats("TEAM_COORDINATION", null, null, 3));
+        when(requestRepository.findMostPopularCombination(eq(PracticeType.INDIVIDUAL), any(Pageable.class)))
+                .thenReturn(List.of(mockStats("AIM_TRAINING", "GAME_SENSE", null, 5)));
+        when(requestRepository.findMostPopularCombination(eq(PracticeType.TEAM), any(Pageable.class)))
+                .thenReturn(List.of(mockStats("TEAM_COORDINATION", null, null, 3)));
 
         PopularCombinationsResponse resp = subject.getPopularCombinations();
 

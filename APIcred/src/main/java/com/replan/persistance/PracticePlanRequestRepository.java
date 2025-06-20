@@ -1,10 +1,11 @@
 package com.replan.persistance;
 
+import com.replan.domain.objects.PracticeType;
 import com.replan.persistance.entity.PracticePlanRequestEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -31,9 +32,8 @@ public interface PracticePlanRequestRepository extends JpaRepository<PracticePla
         Long getCnt();
     }
 
-    @Query(value = "SELECT focus_priority_1 as focusOne, focus_priority_2 as focusTwo, " +
-            "focus_priority_3 as focusThree, COUNT(*) as cnt FROM PracticePlanRequest " +
-            "WHERE practice_type = :type GROUP BY focus_priority_1, focus_priority_2, focus_priority_3 " +
-            "ORDER BY cnt DESC LIMIT 1", nativeQuery = true)
-    FocusCombinationStats findMostPopularCombination(@Param("type") String type);
+    @Query("SELECT pr.focusOne as focusOne, pr.focusTwo as focusTwo, pr.focusThree as focusThree, COUNT(pr) as cnt " +
+            "FROM PracticePlanRequestEntity pr WHERE pr.practiceType = :type " +
+            "GROUP BY pr.focusOne, pr.focusTwo, pr.focusThree ORDER BY COUNT(pr) DESC")
+    List<FocusCombinationStats> findMostPopularCombination(@Param("type") PracticeType type, Pageable pageable);
 }
