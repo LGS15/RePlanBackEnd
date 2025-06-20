@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface GetUserPracticeHistoryUseCase {
 
-    List<CalculatePracticeResponse> getUserPracticeHistory(String userId, Integer limit);
+    List<CalculatePracticeResponse> getUserPracticeHistory(String userId, Integer page, Integer limit);
 }

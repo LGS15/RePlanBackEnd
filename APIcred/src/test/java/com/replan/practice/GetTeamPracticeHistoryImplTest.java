@@ -20,6 +20,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -84,12 +87,13 @@ class GetTeamPracticeHistoryImplTest {
         requestEntity.setCreatedAt(LocalDateTime.now());
         requestEntity.setFocusOne(PracticeFocus.AIM_TRAINING);
 
-        when(planRepository.findByTeamIdOrderByGeneratedAtDesc(TEAM_ID))
-                .thenReturn(List.of(planEntity));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(planRepository.findByTeamIdOrderByGeneratedAtDesc(TEAM_ID, pageable))
+                .thenReturn(new PageImpl<>(List.of(planEntity)));
         when(requestRepository.findById(REQUEST_ID))
                 .thenReturn(Optional.of(requestEntity));
 
-        List<CalculatePracticeResponse> list = subject.getTeamPracticeHistory(TEAM_ID.toString(), null);
+        List<CalculatePracticeResponse> list = subject.getTeamPracticeHistory(TEAM_ID.toString(), 0, 10);
 
         assertThat(list).hasSize(1);
         assertThat(list.get(0).getPlanId()).isEqualTo(PLAN_ID.toString());
@@ -101,14 +105,14 @@ class GetTeamPracticeHistoryImplTest {
         when(teamMemberRepository.findByTeamIdAndUserId(TEAM_ID, USER_ID))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> subject.getTeamPracticeHistory(TEAM_ID.toString(), null))
+        assertThatThrownBy(() -> subject.getTeamPracticeHistory(TEAM_ID.toString(), null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
     void notAuthenticated_shouldThrow() {
         when(securityContext.getAuthentication()).thenReturn(null);
-        assertThatThrownBy(() -> subject.getTeamPracticeHistory(TEAM_ID.toString(), null))
+        assertThatThrownBy(() -> subject.getTeamPracticeHistory(TEAM_ID.toString(), null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 }

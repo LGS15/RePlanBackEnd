@@ -196,11 +196,10 @@ class JwtUtilTest {
     void refreshToken_withExpiringSoonToken_shouldReturnValidToken() {
         String email = "test@example.com";
 
-        // Create a new instance of JwtUtil with a test method to simulate near-expiry token
         JwtUtil testJwtUtil = new JwtUtil() {
             @Override
             public boolean isTokenCloseToExpiry(String token) {
-                return true; // Simulate token being close to expiry
+                return true;
             }
         };
 
@@ -211,7 +210,6 @@ class JwtUtilTest {
         // Generate a token
         String token = testJwtUtil.generateToken(email);
 
-        // Test the refresh token functionality
         String refreshedToken = testJwtUtil.refreshToken(token);
 
         // Verify that refreshToken returns a valid token
@@ -221,7 +219,6 @@ class JwtUtilTest {
         // Verify the refreshed token can be validated
         assertTrue(testJwtUtil.validateToken(refreshedToken));
 
-        // The token should contain the same email
         assertEquals(email, testJwtUtil.getEmailFromToken(refreshedToken));
     }
 
@@ -251,7 +248,7 @@ class JwtUtilTest {
             jwtUtil.getEmailFromToken(invalidToken);
             fail("Expected exception was not thrown");
         } catch (Exception e) {
-            assertNotNull(e); //validate the exception
+            assertNotNull(e);
         }
     }
 }

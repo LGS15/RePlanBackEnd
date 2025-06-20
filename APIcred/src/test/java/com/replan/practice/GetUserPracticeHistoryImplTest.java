@@ -18,6 +18,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,12 +79,13 @@ class GetUserPracticeHistoryImplTest {
         requestEntity.setCreatedAt(LocalDateTime.now());
         requestEntity.setFocusOne(PracticeFocus.AIM_TRAINING);
 
-        when(planRepository.findByUserIdOrderByGeneratedAtDesc(USER_ID))
-                .thenReturn(List.of(planEntity));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(planRepository.findByUserIdOrderByGeneratedAtDesc(USER_ID, pageable))
+                .thenReturn(new PageImpl<>(List.of(planEntity)));
         when(requestRepository.findById(REQUEST_ID))
                 .thenReturn(Optional.of(requestEntity));
 
-        List<CalculatePracticeResponse> list = subject.getUserPracticeHistory(USER_ID.toString(), 10);
+        List<CalculatePracticeResponse> list = subject.getUserPracticeHistory(USER_ID.toString(), 0, 10);
 
         assertThat(list).hasSize(1);
         assertThat(list.get(0).getPlanId()).isEqualTo(PLAN_ID.toString());
@@ -91,14 +95,14 @@ class GetUserPracticeHistoryImplTest {
     void wrongUser_shouldThrow() {
         mockAuth();
         UUID other = UUID.randomUUID();
-        assertThatThrownBy(() -> subject.getUserPracticeHistory(other.toString(), null))
+        assertThatThrownBy(() -> subject.getUserPracticeHistory(other.toString(), null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
     void notAuthenticated_shouldThrow() {
         when(securityContext.getAuthentication()).thenReturn(null);
-        assertThatThrownBy(() -> subject.getUserPracticeHistory(USER_ID.toString(), null))
+        assertThatThrownBy(() -> subject.getUserPracticeHistory(USER_ID.toString(), null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 }

@@ -123,7 +123,7 @@ public class PracticeCalculatorControllerTest {
         UserEntity user = new UserEntity();
         user.setId(UUID.fromString(userId));
         when(authentication.getPrincipal()).thenReturn(user);
-        when(userHistoryUseCase.getUserPracticeHistory(userId, 10)).thenReturn(List.of(resp));
+        when(userHistoryUseCase.getUserPracticeHistory(userId,0, 10)).thenReturn(List.of(resp));
 
         mockMvc.perform(get("/practice-calculator/history"))
                 .andExpect(status().isOk())
@@ -140,7 +140,7 @@ public class PracticeCalculatorControllerTest {
                 Map.of(),
                 LocalDateTime.now()
         );
-        when(userHistoryUseCase.getUserPracticeHistory(userId, 10)).thenReturn(List.of(resp));
+        when(userHistoryUseCase.getUserPracticeHistory(userId,0, 10)).thenReturn(List.of(resp));
 
         mockMvc.perform(get("/practice-calculator/history/{userId}", userId))
                 .andExpect(status().isOk())
@@ -157,7 +157,7 @@ public class PracticeCalculatorControllerTest {
                 Map.of(),
                 LocalDateTime.now()
         );
-        when(teamHistoryUseCase.getTeamPracticeHistory(teamId, 10)).thenReturn(List.of(resp));
+        when(teamHistoryUseCase.getTeamPracticeHistory(teamId,0, 10)).thenReturn(List.of(resp));
 
         mockMvc.perform(get("/practice-calculator/team/{teamId}/history", teamId))
                 .andExpect(status().isOk())

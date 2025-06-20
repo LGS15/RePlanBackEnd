@@ -123,7 +123,7 @@ class DeleteTeamImplTest {
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("You do not have permission to delete this team");
 
-        // Verify no deletion occurred - use specific UUID instead of anyString()
+        // Verify no deletion occurred
         verify(reviewSessionRepository, never()).findByTeamId(any(UUID.class));
         verify(participantRepository, never()).deleteBySessionId(any(UUID.class));
         verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));

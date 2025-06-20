@@ -45,28 +45,31 @@ public class PracticeCalculatorController {
 
     @GetMapping("/history")
     public ResponseEntity<List<CalculatePracticeResponse>> getCurrentUserPracticeHistory(
+            @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer limit
     ) {
         String currentUserId = getCurrentUserId();
-        List<CalculatePracticeResponse> history = userHistoryUseCase.getUserPracticeHistory(currentUserId, limit);
+        List<CalculatePracticeResponse> history = userHistoryUseCase.getUserPracticeHistory(currentUserId, page, limit);
         return ResponseEntity.ok(history);
     }
 
     @GetMapping("/history/{userId}")
     public ResponseEntity<List<CalculatePracticeResponse>> getUserPracticeHistory(
             @PathVariable String userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer limit
     ) {
-        List<CalculatePracticeResponse> history = userHistoryUseCase.getUserPracticeHistory(userId, limit);
+        List<CalculatePracticeResponse> history = teamHistoryUseCase.getTeamPracticeHistory(userId, page, limit);
         return ResponseEntity.ok(history);
     }
 
     @GetMapping("/team/{teamId}/history")
     public ResponseEntity<List<CalculatePracticeResponse>> getTeamPracticeHistory(
             @PathVariable String teamId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer limit
     ) {
-        List<CalculatePracticeResponse> history = teamHistoryUseCase.getTeamPracticeHistory(teamId, limit);
+        List<CalculatePracticeResponse> history = teamHistoryUseCase.getTeamPracticeHistory(teamId, page, limit);
         return ResponseEntity.ok(history);
     }
 

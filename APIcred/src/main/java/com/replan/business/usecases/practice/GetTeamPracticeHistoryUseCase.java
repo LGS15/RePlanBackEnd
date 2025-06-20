@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface GetTeamPracticeHistoryUseCase {
 
-    List<CalculatePracticeResponse> getTeamPracticeHistory(String teamId, Integer limit);
+    List<CalculatePracticeResponse> getTeamPracticeHistory(String teamId, Integer page, Integer limit);
 }
 

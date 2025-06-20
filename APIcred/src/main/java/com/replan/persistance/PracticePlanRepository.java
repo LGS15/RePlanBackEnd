@@ -1,6 +1,8 @@
 package com.replan.persistance;
 
 import com.replan.persistance.entity.PracticePlanEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,12 +19,12 @@ public interface PracticePlanRepository extends JpaRepository<PracticePlanEntity
     @Query("SELECT pp FROM PracticePlanEntity pp " +
             "JOIN PracticePlanRequestEntity pr ON pp.requestId = pr.id " +
             "WHERE pr.userId = :userId ORDER BY pp.generatedAt DESC")
-    List<PracticePlanEntity> findByUserIdOrderByGeneratedAtDesc(@Param("userId") UUID userId);
+    Page<PracticePlanEntity> findByUserIdOrderByGeneratedAtDesc(@Param("userId") UUID userId, Pageable pageable);
 
     @Query("SELECT pp FROM PracticePlanEntity pp " +
             "JOIN PracticePlanRequestEntity pr ON pp.requestId = pr.id " +
             "WHERE pr.teamId = :teamId ORDER BY pp.generatedAt DESC")
-    List<PracticePlanEntity> findByTeamIdOrderByGeneratedAtDesc(@Param("teamId") UUID teamId);
+    Page<PracticePlanEntity> findByTeamIdOrderByGeneratedAtDesc(@Param("teamId") UUID teamId, Pageable pageable);
 
     @Query("SELECT pp FROM PracticePlanEntity pp " +
             "JOIN PracticePlanRequestEntity pr ON pp.requestId = pr.id " +

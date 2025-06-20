@@ -39,20 +39,17 @@ public class PracticeTimeCalculatorImpl implements PracticeTimeCalculatorUseCase
     @Override
     @Transactional
     public CalculatePracticeResponse calculatePracticeAllocation(CalculatePracticeRequest request) {
-        // Validation
+
         validateRequest(request);
 
         UUID currentUserId = getCurrentUserId();
 
-        // Convert request to domain object
         PracticePlanRequest planRequest = PracticePlanMapper.fromRequest(request, currentUserId);
 
-        // Save the request
         PracticePlanRequestEntity requestEntity = PracticePlanMapper.toRequestEntity(planRequest);
         requestEntity = requestRepository.save(requestEntity);
         planRequest.setId(requestEntity.getId());
 
-        // Calculate allocation
         PracticePlan calculatedPlan = performCalculation(planRequest);
 
         PracticePlanEntity planEntity = PracticePlanMapper.toPlanEntity(calculatedPlan, requestEntity);
@@ -106,10 +103,8 @@ public class PracticeTimeCalculatorImpl implements PracticeTimeCalculatorUseCase
             adjustedAllocation.put(entry.getKey(), hours);
         }
 
-        // Ensure total doesn't exceed available hours
         double totalAllocated = adjustedAllocation.values().stream().mapToDouble(Double::doubleValue).sum();
         if (totalAllocated > totalHours) {
-            // Scale down proportionally
             double scaleFactor = totalHours / totalAllocated;
             adjustedAllocation.replaceAll((focus, hours) -> hours * scaleFactor);
         }
@@ -126,13 +121,11 @@ public class PracticeTimeCalculatorImpl implements PracticeTimeCalculatorUseCase
             throw new IllegalArgumentException("Must provide 1-3 focus areas");
         }
 
-        // Check for duplicates
         Set<PracticeFocus> uniqueFocuses = new HashSet<>(request.getFocusAreas());
         if (uniqueFocuses.size() != request.getFocusAreas().size()) {
             throw new IllegalArgumentException("Focus areas must be unique");
         }
 
-        // Validate team ID format if provided
         if (request.getTeamId() != null && !request.getTeamId().trim().isEmpty()) {
             try {
                 UUID.fromString(request.getTeamId());

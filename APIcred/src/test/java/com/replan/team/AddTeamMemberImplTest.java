@@ -176,7 +176,6 @@ class AddTeamMemberImplTest {
         userEnt.setEmail("user@example.com");
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(userEnt));
 
-        // Check passes but database constraint fails
         when(tmRepo.findByTeamIdAndUserId(TEAM_ID, USER_ID)).thenReturn(Optional.empty());
         when(tmRepo.save(any(TeamMemberEntity.class))).thenThrow(new DataIntegrityViolationException("Duplicate key"));
 

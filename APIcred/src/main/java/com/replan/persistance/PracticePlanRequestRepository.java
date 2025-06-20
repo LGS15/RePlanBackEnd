@@ -32,6 +32,8 @@ public interface PracticePlanRequestRepository extends JpaRepository<PracticePla
         Long getCnt();
     }
 
+
+    // Yes I changed it so it's now JPQL
     @Query("SELECT pr.focusOne as focusOne, pr.focusTwo as focusTwo, pr.focusThree as focusThree, COUNT(pr) as cnt " +
             "FROM PracticePlanRequestEntity pr WHERE pr.practiceType = :type " +
             "GROUP BY pr.focusOne, pr.focusTwo, pr.focusThree ORDER BY COUNT(pr) DESC")

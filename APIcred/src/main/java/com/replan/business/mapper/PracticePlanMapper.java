@@ -27,7 +27,7 @@ public class PracticePlanMapper {
         return domain;
     }
 
-    // Convert domain to entity
+
     public static PracticePlanRequestEntity toRequestEntity(PracticePlanRequest domain) {
         PracticePlanRequestEntity entity = new PracticePlanRequestEntity();
         entity.setId(domain.getId());
