@@ -40,15 +40,12 @@ class JwtAuthenticationFilterTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Initialize Spring's mock classes for HTTP
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         filterChain = new MockFilterChain();
 
-        // Create the filter with our mocked dependencies
         filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
 
-        // Clear security context before each test
         SecurityContextHolder.clearContext();
     }
 

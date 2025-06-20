@@ -67,7 +67,6 @@ public class GetActiveSessionsImpl implements GetActiveSessionsUseCase {
         ReviewSessionEntity session = reviewSessionRepository.findById(sessionUuid)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
-        // Verify user is a member of the team
         boolean isMember = teamMemberRepository.findByTeamIdAndUserId(session.getTeamId(), currentUserId).isPresent();
         if (!isMember) {
             throw new AccessDeniedException("You must be a team member to view this session");

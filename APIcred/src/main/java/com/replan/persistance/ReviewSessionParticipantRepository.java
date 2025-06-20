@@ -23,5 +23,9 @@ public interface ReviewSessionParticipantRepository extends JpaRepository<Review
 
     @Query("SELECT COUNT(p) FROM ReviewSessionParticipantEntity p WHERE p.sessionId = :sessionId AND p.isActive = true")
     Long countActiveParticipants(@Param("sessionId") UUID sessionId);
+
+    @Modifying
+    @Query("DELETE FROM ReviewSessionParticipantEntity p WHERE p.sessionId = :sessionId")
+    void deleteBySessionId(@Param("sessionId") UUID sessionId);
 }
 

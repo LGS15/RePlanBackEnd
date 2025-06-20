@@ -54,12 +54,10 @@ public class CreateTeamImplTest {
         String ownerId = ownerUUID.toString();
         var req = new CreateTeamRequest("Alpha", "Chess", ownerId);
 
-        // Mock the user repository to return the owner
         var userEntity = new UserEntity();
         userEntity.setId(ownerUUID);
         when(userRepository.findById(ownerUUID)).thenReturn(Optional.of(userEntity));
 
-        // Mock the team repository
         var savedTeam = new TeamEntity();
         savedTeam.setId(TEAM_UUID);
         savedTeam.setTeamName("Alpha");
@@ -67,7 +65,6 @@ public class CreateTeamImplTest {
         savedTeam.setOwnerId(ownerUUID);
         when(teamRepository.save(any(TeamEntity.class))).thenReturn(savedTeam);
 
-        // Mock the team member repository
         var savedMember = new TeamMemberEntity();
         savedMember.setId(MEMBER_UUID);
         savedMember.setTeamId(TEAM_UUID);
@@ -103,7 +100,6 @@ public class CreateTeamImplTest {
 
     @Test
     void missingTeamName_shouldThrow() {
-        // Generate a valid UUID for owner
         String ownerId = UUID.randomUUID().toString();
         var req = new CreateTeamRequest("", "Chess", ownerId);
 
@@ -114,7 +110,6 @@ public class CreateTeamImplTest {
 
     @Test
     void missingGameName_shouldThrow() {
-        // Generate a valid UUID for owner
         String ownerId = UUID.randomUUID().toString();
         var req = new CreateTeamRequest("Alpha", null, ownerId);
 
@@ -134,7 +129,6 @@ public class CreateTeamImplTest {
 
     @Test
     void nonExistentOwner_shouldThrow() {
-        // Generate a valid UUID for a non-existent owner
         UUID nonExistentUUID = UUID.randomUUID();
         String nonExistentId = nonExistentUUID.toString();
         var req = new CreateTeamRequest("Alpha", "Chess", nonExistentId);

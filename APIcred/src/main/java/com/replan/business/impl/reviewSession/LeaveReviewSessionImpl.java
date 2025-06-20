@@ -5,6 +5,7 @@ import com.replan.domain.requests.LeaveSessionRequest;
 import com.replan.domain.responses.LeaveSessionResponse;
 import com.replan.persistance.ReviewSessionParticipantRepository;
 import com.replan.persistance.entity.UserEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ public class LeaveReviewSessionImpl implements LeaveReviewSessionUseCase {
         this.participantRepository = participantRepository;
     }
 
+    @Transactional
     @Override
     public LeaveSessionResponse leaveSession(LeaveSessionRequest request) {
         if (request.getSessionId() == null || request.getSessionId().isEmpty()) {

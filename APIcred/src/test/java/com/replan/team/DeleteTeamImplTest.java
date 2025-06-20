@@ -3,6 +3,8 @@ package com.replan.team;
 import com.replan.business.impl.team.DeleteTeamImpl;
 import com.replan.domain.requests.DeleteTeamRequest;
 import com.replan.domain.responses.DeleteTeamResponse;
+import com.replan.persistance.ReviewSessionParticipantRepository;
+import com.replan.persistance.ReviewSessionRepository;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
 import com.replan.persistance.entity.TeamEntity;
@@ -20,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +34,13 @@ class DeleteTeamImplTest {
 
     @Mock
     private TeamMemberRepository teamMemberRepository;
+
+    @Mock
+    private ReviewSessionRepository reviewSessionRepository;
+
+    @Mock
+    private ReviewSessionParticipantRepository participantRepository;
+
 
     @Mock
     private SecurityContext securityContext;
@@ -71,6 +81,7 @@ class DeleteTeamImplTest {
         when(teamRepository.findById(TEAM_UUID)).thenReturn(Optional.of(team));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(ownerUser);
+        when(reviewSessionRepository.findByTeamId(TEAM_UUID)).thenReturn(List.of());
 
         DeleteTeamRequest request = new DeleteTeamRequest(teamId);
 
@@ -83,6 +94,8 @@ class DeleteTeamImplTest {
         assertThat(response.isDeleted()).isTrue();
 
         // Verify repository
+        verify(reviewSessionRepository).findByTeamId(TEAM_UUID);
+        verify(participantRepository, never()).deleteBySessionId(any(UUID.class));
         verify(teamMemberRepository).deleteByTeamId(TEAM_UUID);
         verify(teamRepository).delete(team);
     }
@@ -110,7 +123,9 @@ class DeleteTeamImplTest {
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("You do not have permission to delete this team");
 
-        // Verify no deletion occurred - use specific UUID instead of anyString()
+        // Verify no deletion occurred
+        verify(reviewSessionRepository, never()).findByTeamId(any(UUID.class));
+        verify(participantRepository, never()).deleteBySessionId(any(UUID.class));
         verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));
     }
@@ -129,7 +144,9 @@ class DeleteTeamImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team not found");
 
-        // Verify no deletion occurred - use specific UUID or proper matchers
+        // Verify no deletion occurred
+        verify(reviewSessionRepository, never()).findByTeamId(any(UUID.class));
+        verify(participantRepository, never()).deleteBySessionId(any(UUID.class));
         verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));
     }
@@ -144,7 +161,9 @@ class DeleteTeamImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Team id cannot be empty");
 
-        // Remove the UUID.fromString calls which cause the issues
+        // Verify no deletion occurred
+        verify(reviewSessionRepository, never()).findByTeamId(any(UUID.class));
+        verify(participantRepository, never()).deleteBySessionId(any(UUID.class));
         verify(teamRepository, never()).findById(any(UUID.class));
         verify(teamMemberRepository, never()).deleteByTeamId(any(UUID.class));
         verify(teamRepository, never()).delete(any(TeamEntity.class));

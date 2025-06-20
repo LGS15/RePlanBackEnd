@@ -3,6 +3,7 @@ package com.replan.persistance;
 import com.replan.domain.objects.SessionStatus;
 import com.replan.persistance.entity.ReviewSessionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,4 +21,8 @@ public interface ReviewSessionRepository extends JpaRepository<ReviewSessionEnti
     List<ReviewSessionEntity> findActiveSessionsByTeamId(@Param("teamId") UUID teamId);
 
     Optional<ReviewSessionEntity> findByIdAndTeamId(UUID id, UUID teamId);
+
+    @Modifying
+    @Query("DELETE FROM ReviewSessionEntity rs WHERE rs.teamId = :teamId")
+    void deleteByTeamId(@Param("teamId") UUID teamId);
 }

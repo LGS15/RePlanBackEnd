@@ -58,7 +58,6 @@ public class UserController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<Object> refreshToken(HttpServletRequest request) {
-        // Extract token from Authorization header
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);

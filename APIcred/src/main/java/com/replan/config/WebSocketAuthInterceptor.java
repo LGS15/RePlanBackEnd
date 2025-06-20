@@ -24,7 +24,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         this.userRepository = userRepository;
     }
 
-    // Enhanced WebSocketAuthInterceptor.java - preSend method
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -46,10 +45,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 Boolean isAuthenticated = (Boolean) accessor.getSessionAttributes().get("authenticated");
 
                 if (user == null || !Boolean.TRUE.equals(isAuthenticated)) {
-                    System.out.println("⚠️ WebSocket security disabled - allowing unauthenticated "
+                    System.out.println(" WebSocket security disabled - allowing unauthenticated "
                             + accessor.getCommand() + " to " + accessor.getDestination());
                 } else {
-                    System.out.println("✅ Authenticated user " + user.getUsername()
+                    System.out.println(" Authenticated user " + user.getUsername()
                             + " sending " + accessor.getCommand() + " to " + accessor.getDestination());
                 }
             }
@@ -60,7 +59,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private void authenticateUser(StompHeaderAccessor accessor) {
         try {
-            // Extract token from STOMP headers during connection
             List<String> authHeaders = accessor.getNativeHeader("Authorization");
 
             if (authHeaders != null && !authHeaders.isEmpty()) {
@@ -74,32 +72,31 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                         UserEntity user = userRepository.findByEmail(email).orElse(null);
 
                         if (user != null) {
-                            // Store authentication info in session attributes
+
                             accessor.getSessionAttributes().put("token", token);
                             accessor.getSessionAttributes().put("user", user);
                             accessor.getSessionAttributes().put("authenticated", true);
 
-                            System.out.println("✅ WebSocket authenticated for user: " + user.getUsername() + " (ID: " + user.getId() + ")");
+                            System.out.println(" WebSocket authenticated for user: " + user.getUsername() + " (ID: " + user.getId() + ")");
                             return;
                         } else {
-                            System.err.println("❌ User not found for email: " + email);
+                            System.err.println(" User not found for email: " + email);
                         }
                     } else {
-                        System.err.println("❌ Invalid JWT token in WebSocket connection");
+                        System.err.println(" Invalid JWT token in WebSocket connection");
                     }
                 } else {
-                    System.err.println("❌ Invalid Authorization header format in WebSocket connection");
+                    System.err.println(" Invalid Authorization header format in WebSocket connection");
                 }
             } else {
-                System.err.println("❌ No Authorization header found in WebSocket connection");
+                System.err.println(" No Authorization header found in WebSocket connection");
             }
 
             // If we reach here, authentication failed
             accessor.getSessionAttributes().put("authenticated", false);
 
         } catch (Exception e) {
-            System.err.println("❌ WebSocket authentication failed: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println(" WebSocket authentication failed: " + e.getMessage());
             accessor.getSessionAttributes().put("authenticated", false);
         }
     }
@@ -108,13 +105,12 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         try {
             UserEntity user = (UserEntity) accessor.getSessionAttributes().get("user");
             if (user != null) {
-                System.out.println("🔌 WebSocket disconnected for user: " + user.getUsername());
+                System.out.println(" WebSocket disconnected for user: " + user.getUsername());
 
-                // Could send user left messages here if needed
-                // messagingTemplate.convertAndSend("/topic/session/...", userLeftMessage);
+
             }
         } catch (Exception e) {
-            System.err.println("❌ Error handling WebSocket disconnect: " + e.getMessage());
+            System.err.println(" Error handling WebSocket disconnect: " + e.getMessage());
         }
     }
 }

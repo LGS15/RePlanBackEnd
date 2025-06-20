@@ -23,13 +23,11 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    // Generate a key from the secret
     private Key getSigningKey() {
         byte[] keyBytes = secret.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Generate token for a user
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
@@ -39,7 +37,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Validate token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
@@ -49,29 +46,24 @@ public class JwtUtil {
         }
     }
 
-    // Extract email from token
     public String getEmailFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    // Extract expiration date from token
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
-    // Check if token is expired
     private Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    // Extract claim from token
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
 
-    // Extract all claims from token
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

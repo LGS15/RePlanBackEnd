@@ -3,8 +3,11 @@ package com.replan.business.impl.team;
 import com.replan.business.usecases.team.DeleteTeamUseCase;
 import com.replan.domain.requests.DeleteTeamRequest;
 import com.replan.domain.responses.DeleteTeamResponse;
+import com.replan.persistance.ReviewSessionParticipantRepository;
+import com.replan.persistance.ReviewSessionRepository;
 import com.replan.persistance.TeamMemberRepository;
 import com.replan.persistance.TeamRepository;
+import com.replan.persistance.entity.ReviewSessionEntity;
 import com.replan.persistance.entity.TeamEntity;
 import com.replan.persistance.entity.UserEntity;
 import jakarta.transaction.Transactional;
@@ -13,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,10 +24,16 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
 
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final ReviewSessionRepository reviewSessionRepository;
+    private final ReviewSessionParticipantRepository participantRepository;
 
-    public DeleteTeamImpl(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository) {
+    public DeleteTeamImpl(TeamRepository teamRepository, TeamMemberRepository teamMemberRepository,
+                          ReviewSessionRepository reviewSessionRepository,
+                          ReviewSessionParticipantRepository participantRepository) {
         this.teamRepository = teamRepository;
         this.teamMemberRepository = teamMemberRepository;
+        this.reviewSessionRepository = reviewSessionRepository;
+        this.participantRepository = participantRepository;
     }
 
     @Override
@@ -44,7 +54,17 @@ public class DeleteTeamImpl implements DeleteTeamUseCase {
 
         String teamName = team.getTeamName();
 
-        teamMemberRepository.deleteByTeamId(UUID.fromString(request.getTeamId()));
+        UUID teamUuid = UUID.fromString(request.getTeamId());
+
+        List<ReviewSessionEntity> sessions = reviewSessionRepository.findByTeamId(teamUuid);
+        for (ReviewSessionEntity session : sessions) {
+            participantRepository.deleteBySessionId(session.getId());
+        }
+        if (!sessions.isEmpty()) {
+            reviewSessionRepository.deleteAll(sessions);
+        }
+
+        teamMemberRepository.deleteByTeamId(teamUuid);
         teamRepository.delete(team);
 
         return new DeleteTeamResponse(
